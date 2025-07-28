@@ -20,16 +20,22 @@ export class DeepGramClient {
         };
     }
     connect() {
+        console.log('🔵 DeepGramClient.connect() called');
+        console.log('🔵 Current connection state:', this.connectionState);
+        console.log('🔵 API key provided:', !!this.config.apiKey);
         return new Promise((resolve, reject) => {
             if (this.connectionState === 'connected' || this.connectionState === 'connecting') {
+                console.log('🔵 Already connected/connecting, resolving immediately');
                 resolve();
                 return;
             }
             this.setConnectionState('connecting');
             const wsUrl = this.buildWebSocketUrl();
-            this.ws = new WebSocket(wsUrl);
+            console.log('🔵 Built WebSocket URL:', wsUrl);
+            console.log('🔵 Creating WebSocket with subprotocols:', ['token', this.config.apiKey]);
+            this.ws = new WebSocket(wsUrl, ['token', this.config.apiKey]);
             this.ws.onopen = () => {
-                console.log('DeepGram WebSocket connected');
+                console.log('✅ DeepGram WebSocket connected successfully!');
                 this.setConnectionState('connected');
                 this.reconnectAttempts = 0;
                 this.startKeepAlive();
@@ -50,7 +56,8 @@ export class DeepGramClient {
                 }
             };
             this.ws.onclose = (event) => {
-                console.log('DeepGram WebSocket closed:', event.code, event.reason);
+                console.log('❌ DeepGram WebSocket closed:', event.code, event.reason);
+                console.log('❌ Connection state when closed:', this.connectionState);
                 this.stopKeepAlive();
                 if (this.connectionState === 'connected') {
                     this.handleReconnect();
@@ -60,7 +67,8 @@ export class DeepGramClient {
                 }
             };
             this.ws.onerror = (event) => {
-                console.error('DeepGram WebSocket error:', event);
+                console.error('❌ DeepGram WebSocket error:', event);
+                console.error('❌ Connection state during error:', this.connectionState);
                 this.setConnectionState('error');
                 this.notifyError({
                     code: 'WEBSOCKET_ERROR',
@@ -68,6 +76,7 @@ export class DeepGramClient {
                     details: event,
                 });
                 if (this.connectionState === 'connecting') {
+                    console.error('❌ Rejecting connection promise due to error');
                     reject(new Error('WebSocket connection failed'));
                 }
             };
@@ -131,7 +140,7 @@ export class DeepGramClient {
         if (this.config.model) {
             params.append('model', this.config.model);
         }
-        return `${baseUrl}?${params.toString()}&token=${this.config.apiKey}`;
+        return `${baseUrl}?${params.toString()}`;
     }
     handleWebSocketMessage(response) {
         if (isDeepGramError(response)) {
@@ -203,6 +212,7 @@ export class DeepGramClient {
     }
     setConnectionState(state) {
         if (this.connectionState !== state) {
+            console.log(`🔄 Connection state changed: ${this.connectionState} -> ${state}`);
             this.connectionState = state;
             this.connectionStateCallbacks.forEach(callback => {
                 try {

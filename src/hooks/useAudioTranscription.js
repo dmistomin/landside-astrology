@@ -59,12 +59,21 @@ export const useAudioTranscription = ({ apiKey, } = {}) => {
         }
     }, [isRecording, sendAudioData]);
     const startRecording = useCallback(async () => {
-        if (!audioCaptureRef.current || !apiKey)
+        console.log('🔴 useAudioTranscription.startRecording() called');
+        console.log('🔴 Audio capture available:', !!audioCaptureRef.current);
+        console.log('🔴 API key available:', !!apiKey);
+        if (!audioCaptureRef.current || !apiKey) {
+            console.log('🔴 Missing requirements, exiting early');
             return;
+        }
         try {
             setError(null);
+            console.log('🔴 Calling connectTranscription()');
             await connectTranscription();
+            console.log('🔴 connectTranscription() completed successfully');
+            console.log('🔴 Starting audio capture');
             const mediaStream = await audioCaptureRef.current.startCapture();
+            console.log('🔴 Audio capture started successfully');
             await setupAudioProcessing(mediaStream);
             const unsubscribe = audioCaptureRef.current.onAudioLevel((level) => {
                 setAudioLevel(level);
@@ -75,8 +84,9 @@ export const useAudioTranscription = ({ apiKey, } = {}) => {
         }
         catch (err) {
             const message = err instanceof Error ? err.message : 'Failed to start recording';
+            console.error('🔴 startRecording failed:', err);
+            console.error('🔴 Error message:', message);
             setError(message);
-            console.error('Failed to start recording:', err);
             cleanupAudioProcessing();
             if (audioCaptureRef.current?.isCapturing()) {
                 audioCaptureRef.current.stopCapture();

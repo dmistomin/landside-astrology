@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { DeepGramClient, ConnectionState, TranscriptSegment } from '../services/transcription/DeepGramClient';
 import { DeepGramConfig, ApiError } from '../types/api';
 
@@ -29,16 +29,23 @@ export const useDeepGramTranscription = ({
   
   const clientRef = useRef<DeepGramClient | null>(null);
 
+  const memoizedConfig = useMemo(() => ({
+    language: 'en',
+    punctuate: true,
+    smartFormat: true,
+    encoding: 'linear16',
+    channels: 1,
+    sampleRate: 16000,
+    ...config,
+  }), [config.language, config.punctuate, config.smartFormat, config.encoding, config.channels, config.sampleRate]);
+
   useEffect(() => {
-    const defaultConfig: Partial<DeepGramConfig> = {
-      language: 'ja',
-      punctuate: true,
-      smartFormat: true,
-      encoding: 'linear16',
-      channels: 1,
-      ...config,
-    };
+    console.log('🟡 useDeepGramTranscription useEffect triggered');
+    console.log('🟡 API key provided:', !!apiKey);
+    console.log('🟡 API key length:', apiKey?.length || 0);
+    
     if (!apiKey) {
+      console.log('🟡 No API key, cleaning up existing client');
       if (clientRef.current) {
         clientRef.current.disconnect();
         clientRef.current = null;
@@ -51,8 +58,13 @@ export const useDeepGramTranscription = ({
 
     const fullConfig: DeepGramConfig = {
       apiKey,
-      ...defaultConfig,
+      ...memoizedConfig,
     } as DeepGramConfig;
+
+    console.log('🟡 Creating new DeepGramClient with config:', {
+      ...fullConfig,
+      apiKey: '***' + fullConfig.apiKey.slice(-4)
+    });
 
     const newClient = new DeepGramClient(fullConfig);
     clientRef.current = newClient;
@@ -88,18 +100,25 @@ export const useDeepGramTranscription = ({
         clientRef.current = null;
       }
     };
-  }, [apiKey, config]);
+  }, [apiKey, memoizedConfig]);
 
   const connect = useCallback(async () => {
+    console.log('🟡 useDeepGramTranscription.connect() called');
+    console.log('🟡 Client available:', !!clientRef.current);
+    
     if (!clientRef.current) {
+      console.error('🟡 No DeepGram client available!');
       throw new Error('DeepGram client not initialized');
     }
 
     setError(null);
 
     try {
+      console.log('🟡 Calling clientRef.current.connect()');
       await clientRef.current.connect();
+      console.log('🟡 Client connection successful!');
     } catch (err) {
+      console.error('🟡 Client connection failed:', err);
       const error: ApiError = {
         code: 'CONNECTION_FAILED',
         message: err instanceof Error ? err.message : 'Failed to connect to DeepGram',
