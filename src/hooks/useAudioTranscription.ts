@@ -88,7 +88,9 @@ export const useAudioTranscription = ({
       processorRef.current = audioContextRef.current.createScriptProcessor(4096, 1, 1);
       
       processorRef.current.onaudioprocess = (event) => {
-        if (!isRecording) return;
+        if (!isRecording || connectionState !== 'connected') {
+          return;
+        }
 
         const inputBuffer = event.inputBuffer;
         const inputData = inputBuffer.getChannelData(0);
@@ -99,7 +101,7 @@ export const useAudioTranscription = ({
           int16Array[i] = s < 0 ? s * 0x8000 : s * 0x7FFF;
         }
         
-        console.log(`🔴 Sending audio data: ${int16Array.length} samples`);
+        console.log(`🔴 Sending audio data: ${int16Array.length} samples (connection state: ${connectionState})`);
         sendAudioData(int16Array.buffer);
       };
 
@@ -110,7 +112,7 @@ export const useAudioTranscription = ({
       console.error('Failed to setup audio processing:', err);
       throw new Error('Failed to setup audio processing for transcription');
     }
-  }, [isRecording, sendAudioData]);
+  }, [isRecording, sendAudioData, connectionState]);
 
   const startRecording = useCallback(async () => {
     console.log('🔴 useAudioTranscription.startRecording() called');
@@ -125,11 +127,16 @@ export const useAudioTranscription = ({
     try {
       setError(null);
 
-      console.log('🔴 Starting audio capture first');
+      console.log('🔴 First, connecting to DeepGram transcription service');
+      await connectTranscription();
+      console.log('🔴 DeepGram connection established successfully');
+
+      console.log('🔴 Now starting audio capture');
       const mediaStream = await audioCaptureRef.current.startCapture();
       console.log('🔴 Audio capture started successfully');
       
       await setupAudioProcessing(mediaStream);
+      console.log('🔴 Audio processing setup completed');
 
       const unsubscribe = audioCaptureRef.current.onAudioLevel((level) => {
         setAudioLevel(level);
@@ -139,10 +146,7 @@ export const useAudioTranscription = ({
       currentCapture._unsubscribe = unsubscribe;
 
       setIsRecording(true);
-
-      console.log('🔴 Now connecting to transcription service');
-      await connectTranscription();
-      console.log('🔴 connectTranscription() completed successfully');
+      console.log('🔴 Recording started - audio data will now flow to DeepGram');
 
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to start recording';

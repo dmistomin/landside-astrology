@@ -97,16 +97,8 @@ export const useDeepGramTranscription = ({
       setError(err);
     });
 
-    // Automatically connect when client is created with API key
-    console.log('🟡 Automatically connecting to DeepGram...');
-    newClient.connect().catch((err) => {
-      console.error('🟡 Auto-connection failed:', err);
-      setError({
-        code: 'AUTO_CONNECTION_FAILED',
-        message: err instanceof Error ? err.message : 'Failed to connect to DeepGram automatically',
-        details: err,
-      });
-    });
+    // Don't automatically connect - let the consumer decide when to connect
+    console.log('🟡 DeepGram client created, ready for manual connection');
 
     return () => {
       unsubscribeConnectionState();

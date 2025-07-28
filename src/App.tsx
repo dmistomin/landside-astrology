@@ -44,7 +44,7 @@ function App() {
   };
 
   const isConnected = connectionState === 'connected';
-  const canRecord = apiKey && isConnected && !isLoading;
+  const canRecord = apiKey && !isLoading;
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
@@ -72,8 +72,7 @@ function App() {
                 <p className="text-sm text-gray-500 mb-2">Status</p>
                 <p className="text-lg font-medium text-gray-900">
                   {isRecording ? 'Recording & Transcribing...' : 
-                   isConnected ? 'Ready to record' : 
-                   apiKey ? 'Connecting...' : 'Enter API key to begin'}
+                   apiKey ? 'Ready to record' : 'Enter API key to begin'}
                 </p>
                 {connectionState !== 'idle' && connectionState !== 'connected' && (
                   <p className="text-sm text-gray-500 mt-1 capitalize">

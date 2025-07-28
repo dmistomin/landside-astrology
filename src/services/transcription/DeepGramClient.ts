@@ -104,11 +104,13 @@ export class DeepGramClient {
         this.connection.on(LiveTranscriptionEvents.Close, (event: unknown) => {
           console.log('❌ DeepGram connection closed:', event);
           
-          if (this.connectionState === 'connected') {
-            this.handleReconnect();
-          } else if (this.connectionState === 'connecting') {
+          if (this.connectionState === 'connecting') {
             const eventReason = event && typeof event === 'object' && 'reason' in event ? (event as {reason: string}).reason : 'Unknown error';
             reject(new Error(`Connection failed: ${eventReason}`));
+          } else if (this.connectionState === 'connected') {
+            // Only attempt reconnect if we were actively connected and this wasn't a manual disconnect
+            console.log('🔄 Connection closed while active, will not auto-reconnect. Manual reconnection required.');
+            this.setConnectionState('idle');
           }
         });
 
@@ -137,11 +139,12 @@ export class DeepGramClient {
 
   sendAudioData(audioData: ArrayBuffer): void {
     if (this.connectionState !== 'connected' || !this.connection) {
-      console.warn('Cannot send audio data: Connection not established');
+      console.warn(`Cannot send audio data: Connection not established (state: ${this.connectionState})`);
       return;
     }
 
     try {
+      console.log(`🔵 Sending ${audioData.byteLength} bytes of audio data to DeepGram`);
       this.connection.send(audioData);
     } catch (error) {
       console.error('Failed to send audio data:', error);
