@@ -37,7 +37,8 @@ export const useDeepGramTranscription = ({
     channels: 1,
     sampleRate: 16000,
     ...config,
-  }), [config.language, config.punctuate, config.smartFormat, config.encoding, config.channels, config.sampleRate]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }), [config.sampleRate]);
 
   useEffect(() => {
     console.log('🟡 useDeepGramTranscription useEffect triggered');
@@ -75,13 +76,19 @@ export const useDeepGramTranscription = ({
     });
 
     const unsubscribeTranscript = newClient.onTranscript((segment) => {
+      console.log('🟡 Received transcript segment:', segment);
       setTranscriptSegments(prev => {
+        console.log('🟡 Current segments before update:', prev.length);
         if (segment.isFinal) {
           const filtered = prev.filter(s => s.isFinal);
-          return [...filtered, segment];
+          const newSegments = [...filtered, segment];
+          console.log('🟡 Adding final segment, new total:', newSegments.length);
+          return newSegments;
         } else {
           const filtered = prev.filter(s => s.isFinal);
-          return [...filtered, segment];
+          const newSegments = [...filtered, segment];
+          console.log('🟡 Adding interim segment, new total:', newSegments.length);
+          return newSegments;
         }
       });
     });

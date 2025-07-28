@@ -182,7 +182,10 @@ export class DeepGramClient {
   }
 
   private handleWebSocketMessage(response: DeepGramResponse): void {
+    console.log('🔵 Raw WebSocket message received:', response);
+    
     if (isDeepGramError(response)) {
+      console.log('🔵 DeepGram error response:', response.error);
       this.notifyError({
         code: response.error.code,
         message: response.error.message,
@@ -192,7 +195,10 @@ export class DeepGramClient {
     }
 
     if (isDeepGramResults(response)) {
+      console.log('🔵 DeepGram results response:', response);
       const alternative = response.channel.alternatives[0];
+      console.log('🔵 First alternative:', alternative);
+      
       if (alternative && alternative.transcript.trim()) {
         const segment: TranscriptSegment = {
           transcript: alternative.transcript,
@@ -201,6 +207,9 @@ export class DeepGramClient {
           timestamp: Date.now(),
         };
 
+        console.log('🔵 Created transcript segment:', segment);
+        console.log('🔵 Notifying', this.transcriptCallbacks.size, 'callbacks');
+
         this.transcriptCallbacks.forEach(callback => {
           try {
             callback(segment);
@@ -208,7 +217,11 @@ export class DeepGramClient {
             console.error('Error in transcript callback:', error);
           }
         });
+      } else {
+        console.log('🔵 Skipping empty transcript or no alternative found');
       }
+    } else {
+      console.log('🔵 Unknown message type received:', response);
     }
   }
 

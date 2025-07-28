@@ -32,6 +32,8 @@ export const useAudioTranscription = ({
   const processorRef = useRef<ScriptProcessorNode | null>(null);
   const sourceRef = useRef<MediaStreamAudioSourceNode | null>(null);
 
+  const [sampleRate, setSampleRate] = useState<number>(16000);
+
   const {
     connectionState,
     transcriptSegments,
@@ -40,7 +42,10 @@ export const useAudioTranscription = ({
     disconnect: disconnectTranscription,
     sendAudioData,
     clearTranscript,
-  } = useDeepGramTranscription({ apiKey });
+  } = useDeepGramTranscription({ 
+    apiKey,
+    config: { sampleRate }
+  });
 
   const cleanupAudioProcessing = useCallback(() => {
     if (processorRef.current) {
@@ -72,7 +77,12 @@ export const useAudioTranscription = ({
 
   const setupAudioProcessing = useCallback(async (mediaStream: MediaStream) => {
     try {
-      audioContextRef.current = new AudioContext({ sampleRate: 16000 });
+      audioContextRef.current = new AudioContext();
+      const actualSampleRate = audioContextRef.current.sampleRate;
+      console.log(`🔴 Audio context sample rate: ${actualSampleRate}Hz`);
+      
+      setSampleRate(actualSampleRate);
+      
       sourceRef.current = audioContextRef.current.createMediaStreamSource(mediaStream);
       
       processorRef.current = audioContextRef.current.createScriptProcessor(4096, 1, 1);
@@ -89,6 +99,7 @@ export const useAudioTranscription = ({
           int16Array[i] = s < 0 ? s * 0x8000 : s * 0x7FFF;
         }
         
+        console.log(`🔴 Sending audio data: ${int16Array.length} samples`);
         sendAudioData(int16Array.buffer);
       };
 
@@ -114,11 +125,7 @@ export const useAudioTranscription = ({
     try {
       setError(null);
 
-      console.log('🔴 Calling connectTranscription()');
-      await connectTranscription();
-      console.log('🔴 connectTranscription() completed successfully');
-
-      console.log('🔴 Starting audio capture');
+      console.log('🔴 Starting audio capture first');
       const mediaStream = await audioCaptureRef.current.startCapture();
       console.log('🔴 Audio capture started successfully');
       
@@ -133,6 +140,10 @@ export const useAudioTranscription = ({
 
       setIsRecording(true);
 
+      console.log('🔴 Now connecting to transcription service');
+      await connectTranscription();
+      console.log('🔴 connectTranscription() completed successfully');
+
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to start recording';
       console.error('🔴 startRecording failed:', err);
@@ -144,6 +155,8 @@ export const useAudioTranscription = ({
       if (audioCaptureRef.current?.isCapturing()) {
         audioCaptureRef.current.stopCapture();
       }
+      
+      setIsRecording(false);
     }
   }, [apiKey, connectTranscription, setupAudioProcessing, cleanupAudioProcessing]);
 
