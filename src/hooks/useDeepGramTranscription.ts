@@ -90,6 +90,17 @@ export const useDeepGramTranscription = ({
       setError(err);
     });
 
+    // Automatically connect when client is created with API key
+    console.log('🟡 Automatically connecting to DeepGram...');
+    newClient.connect().catch((err) => {
+      console.error('🟡 Auto-connection failed:', err);
+      setError({
+        code: 'AUTO_CONNECTION_FAILED',
+        message: err instanceof Error ? err.message : 'Failed to connect to DeepGram automatically',
+        details: err,
+      });
+    });
+
     return () => {
       unsubscribeConnectionState();
       unsubscribeTranscript();
@@ -105,10 +116,18 @@ export const useDeepGramTranscription = ({
   const connect = useCallback(async () => {
     console.log('🟡 useDeepGramTranscription.connect() called');
     console.log('🟡 Client available:', !!clientRef.current);
+    console.log('🟡 Current connection state:', clientRef.current?.getConnectionState());
     
     if (!clientRef.current) {
       console.error('🟡 No DeepGram client available!');
       throw new Error('DeepGram client not initialized');
+    }
+
+    // If already connected or connecting, return immediately
+    const currentState = clientRef.current.getConnectionState();
+    if (currentState === 'connected' || currentState === 'connecting') {
+      console.log('🟡 Already connected/connecting, skipping connection attempt');
+      return;
     }
 
     setError(null);
