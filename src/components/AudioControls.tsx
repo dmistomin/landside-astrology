@@ -30,7 +30,7 @@ export const AudioControls: React.FC<AudioControlsProps> = ({
       {isRecording ? (
         <div className="w-6 h-6 bg-white rounded-sm" />
       ) : (
-        <div className="w-8 h-8 bg-red-500 rounded-full" />
+        <div className="w-6 h-6 bg-white rounded-full" />
       )}
       
       {isRecording && (

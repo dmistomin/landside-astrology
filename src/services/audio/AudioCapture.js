@@ -9,7 +9,6 @@ export class AudioCapture {
         this.animationId = null;
         this.capturing = false;
         this.options = {
-            sampleRate: 44100,
             echoCancellation: true,
             noiseSuppression: true,
             autoGainControl: true,
@@ -25,17 +24,21 @@ export class AudioCapture {
             if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
                 throw new Error('Browser does not support audio capture');
             }
-            // Request microphone access
+            // Request microphone access without specifying sample rate
+            // to let the browser choose the native sample rate
             this.mediaStream = await navigator.mediaDevices.getUserMedia({
                 audio: {
                     echoCancellation: this.options.echoCancellation,
                     noiseSuppression: this.options.noiseSuppression,
                     autoGainControl: this.options.autoGainControl,
-                    sampleRate: this.options.sampleRate,
                 },
             });
-            // Create audio context and analyser
-            this.audioContext = new AudioContext({ sampleRate: this.options.sampleRate });
+            // Create audio context without specifying sample rate
+            // This will use the default sample rate of the audio hardware
+            this.audioContext = new AudioContext();
+            // Get the actual sample rate from the audio context
+            const actualSampleRate = this.audioContext.sampleRate;
+            console.log(`Audio context sample rate: ${actualSampleRate}Hz`);
             this.analyser = this.audioContext.createAnalyser();
             this.analyser.fftSize = 256;
             this.analyser.smoothingTimeConstant = 0.8;

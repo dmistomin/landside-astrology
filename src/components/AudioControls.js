@@ -8,5 +8,5 @@ export const AudioControls = ({ isRecording, isLoading, onToggleRecording, }) =>
         ${isRecording
             ? 'bg-red-500 hover:bg-red-600 shadow-lg shadow-red-500/50'
             : 'bg-gray-700 hover:bg-gray-600 shadow-lg'}
-      `, "aria-label": isRecording ? 'Stop recording' : 'Start recording', children: [isRecording ? (_jsx("div", { className: "w-6 h-6 bg-white rounded-sm" })) : (_jsx("div", { className: "w-8 h-8 bg-red-500 rounded-full" })), isRecording && (_jsx("div", { className: "absolute inset-0 rounded-full animate-ping bg-red-400 opacity-75" }))] }));
+      `, "aria-label": isRecording ? 'Stop recording' : 'Start recording', children: [isRecording ? (_jsx("div", { className: "w-6 h-6 bg-white rounded-sm" })) : (_jsx("div", { className: "w-6 h-6 bg-white rounded-full" })), isRecording && (_jsx("div", { className: "absolute inset-0 rounded-full animate-ping bg-red-400 opacity-75" }))] }));
 };
