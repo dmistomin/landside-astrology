@@ -22,7 +22,7 @@ export const AudioControls: React.FC<AudioControlsProps> = ({
         ${isLoading ? 'opacity-50 cursor-not-allowed' : 'hover:scale-105 active:scale-95'}
         ${isRecording 
           ? 'bg-red-500 hover:bg-red-600 shadow-lg shadow-red-500/50' 
-          : 'bg-gray-700 hover:bg-gray-600 shadow-lg'
+          : 'bg-red-900/70 hover:bg-red-800/80 shadow-lg shadow-red-900/30'
         }
       `}
       aria-label={isRecording ? 'Stop recording' : 'Start recording'}
