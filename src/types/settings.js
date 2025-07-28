@@ -11,7 +11,7 @@ export function getDefaultSettings() {
             echoCancellation: true,
             autoGainControl: true,
             quality: 'high',
-            voiceActivityThreshold: 0.5
+            voiceActivityThreshold: 0.5,
         },
         language: {
             sourceLanguage: 'ja',
@@ -19,7 +19,7 @@ export function getDefaultSettings() {
             autoDetect: false,
             formality: 'default',
             showRomaji: false,
-            showFurigana: true
+            showFurigana: true,
         },
         display: {
             theme: 'system',
@@ -31,7 +31,7 @@ export function getDefaultSettings() {
             highlightLowConfidence: true,
             lowConfidenceThreshold: 0.7,
             enableAnimations: true,
-            compactMode: false
+            compactMode: false,
         },
         export: {
             defaultFormat: 'json',
@@ -40,13 +40,13 @@ export function getDefaultSettings() {
             includeConfidence: false,
             includeBothLanguages: true,
             includeVocabulary: true,
-            includeSummary: true
+            includeSummary: true,
         },
         privacy: {
             saveConversations: true,
             enableAnalytics: false,
             enableCrashReporting: false,
-            blurSensitiveContent: false
+            blurSensitiveContent: false,
         },
         advanced: {
             debugMode: false,
@@ -54,10 +54,10 @@ export function getDefaultSettings() {
             maxReconnectAttempts: 5,
             reconnectDelay: 1000,
             audioBufferSize: 4096,
-            enableExperimentalFeatures: false
+            enableExperimentalFeatures: false,
         },
         lastUpdated: new Date(),
-        version: 1
+        version: 1,
     };
 }
 /**
@@ -66,22 +66,33 @@ export function getDefaultSettings() {
 export function validateSettings(settings) {
     const errors = [];
     if (settings.audio) {
-        if (settings.audio.voiceActivityThreshold < 0 || settings.audio.voiceActivityThreshold > 1) {
-            errors.push({ field: 'audio.voiceActivityThreshold', message: 'Must be between 0 and 1' });
+        if (settings.audio.voiceActivityThreshold < 0 ||
+            settings.audio.voiceActivityThreshold > 1) {
+            errors.push({
+                field: 'audio.voiceActivityThreshold',
+                message: 'Must be between 0 and 1',
+            });
         }
     }
     if (settings.display) {
-        if (settings.display.lowConfidenceThreshold < 0 || settings.display.lowConfidenceThreshold > 1) {
-            errors.push({ field: 'display.lowConfidenceThreshold', message: 'Must be between 0 and 1' });
+        if (settings.display.lowConfidenceThreshold < 0 ||
+            settings.display.lowConfidenceThreshold > 1) {
+            errors.push({
+                field: 'display.lowConfidenceThreshold',
+                message: 'Must be between 0 and 1',
+            });
         }
     }
     if (settings.privacy?.autoDeleteAfterDays !== undefined) {
         if (settings.privacy.autoDeleteAfterDays < 1) {
-            errors.push({ field: 'privacy.autoDeleteAfterDays', message: 'Must be at least 1 day' });
+            errors.push({
+                field: 'privacy.autoDeleteAfterDays',
+                message: 'Must be at least 1 day',
+            });
         }
     }
     return {
         valid: errors.length === 0,
-        errors
+        errors,
     };
 }

@@ -12,9 +12,9 @@ export var ConversationStatus;
  * Type guard to check if a conversation is completed
  */
 export function isConversationCompleted(conversation) {
-    return conversation.status === ConversationStatus.Completed &&
+    return (conversation.status === ConversationStatus.Completed &&
         conversation.endTime !== undefined &&
-        conversation.summary !== undefined;
+        conversation.summary !== undefined);
 }
 /**
  * Type guard to check if a segment is final
