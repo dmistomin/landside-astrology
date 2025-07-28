@@ -40,8 +40,9 @@ export const useAudioStream = () => {
         if (!audioCaptureRef.current)
             return;
         // Unsubscribe from audio level updates
-        if (audioCaptureRef.current._unsubscribe) {
-            audioCaptureRef.current._unsubscribe();
+        const currentCapture = audioCaptureRef.current;
+        if (currentCapture._unsubscribe) {
+            currentCapture._unsubscribe();
         }
         audioCaptureRef.current.stopCapture();
         setIsRecording(false);

@@ -3,54 +3,31 @@ import { describe, it, expect } from 'vitest';
 import App from './App';
 
 describe('App', () => {
-  it('renders audio capture demo', () => {
+  it('renders transcription app', () => {
     render(<App />);
-    expect(screen.getByText('Audio Capture Demo')).toBeInTheDocument();
-    expect(screen.getByText('Ready to record')).toBeInTheDocument();
+    expect(screen.getByText('Real-time Audio Transcription')).toBeInTheDocument();
+    expect(screen.getByText('Enter API key to begin')).toBeInTheDocument();
     expect(screen.getByLabelText('Start recording')).toBeInTheDocument();
+    expect(screen.getByText('DeepGram API Configuration')).toBeInTheDocument();
   });
 
-  it('shows recording status when start recording is clicked', async () => {
+  it('shows API key input', () => {
     render(<App />);
-    
-    const recordButton = screen.getByLabelText('Start recording');
-    fireEvent.click(recordButton);
-    
-    await waitFor(() => {
-      expect(screen.getByText('Recording...')).toBeInTheDocument();
-    });
-    
-    expect(screen.getByLabelText('Stop recording')).toBeInTheDocument();
+    expect(screen.getByLabelText('API Key')).toBeInTheDocument();
+    expect(screen.getByPlaceholderText('Enter your DeepGram API key')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Connect' })).toBeInTheDocument();
   });
 
-  it('shows audio level when recording', async () => {
+  it('shows transcript display area', () => {
     render(<App />);
-    
-    const recordButton = screen.getByLabelText('Start recording');
-    fireEvent.click(recordButton);
-    
-    await waitFor(() => {
-      expect(screen.getByText(/Audio Level:/)).toBeInTheDocument();
-    });
+    expect(screen.getByText('Live Transcript')).toBeInTheDocument();
+    expect(screen.getByText('Start recording to see transcript here')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Clear' })).toBeInTheDocument();
   });
 
-  it('can stop recording', async () => {
+  it('record button is disabled without API key', () => {
     render(<App />);
-    
-    // Start recording
     const recordButton = screen.getByLabelText('Start recording');
-    fireEvent.click(recordButton);
-    
-    await waitFor(() => {
-      expect(screen.getByText('Recording...')).toBeInTheDocument();
-    });
-
-    // Stop recording
-    const stopButton = screen.getByLabelText('Stop recording');
-    fireEvent.click(stopButton);
-    
-    await waitFor(() => {
-      expect(screen.getByText('Ready to record')).toBeInTheDocument();
-    });
+    expect(recordButton).toBeDisabled();
   });
 });
