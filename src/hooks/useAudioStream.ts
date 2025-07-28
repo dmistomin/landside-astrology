@@ -43,7 +43,7 @@ export const useAudioStream = (): UseAudioStreamReturn => {
       setIsRecording(true);
 
       // Store unsubscribe function for cleanup
-      (audioCaptureRef.current as any)._unsubscribe = unsubscribe;
+      (audioCaptureRef.current as AudioCapture & { _unsubscribe?: () => void })._unsubscribe = unsubscribe;
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to start recording';
       setError(message);
@@ -55,8 +55,9 @@ export const useAudioStream = (): UseAudioStreamReturn => {
     if (!audioCaptureRef.current) return;
 
     // Unsubscribe from audio level updates
-    if ((audioCaptureRef.current as any)._unsubscribe) {
-      (audioCaptureRef.current as any)._unsubscribe();
+    const currentCapture = audioCaptureRef.current as AudioCapture & { _unsubscribe?: () => void };
+    if (currentCapture._unsubscribe) {
+      currentCapture._unsubscribe();
     }
 
     audioCaptureRef.current.stopCapture();
