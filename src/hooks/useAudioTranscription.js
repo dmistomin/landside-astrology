@@ -35,7 +35,7 @@ export const useAudioTranscription = ({ apiKey, } = {}) => {
     }, [cleanupAudioProcessing]);
     const setupAudioProcessing = useCallback(async (mediaStream) => {
         try {
-            audioContextRef.current = new AudioContext({ sampleRate: 16000 });
+            audioContextRef.current = new AudioContext();
             sourceRef.current = audioContextRef.current.createMediaStreamSource(mediaStream);
             processorRef.current = audioContextRef.current.createScriptProcessor(4096, 1, 1);
             processorRef.current.onaudioprocess = (event) => {
