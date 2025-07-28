@@ -21,7 +21,9 @@
       "Bash(npm run:*)",
       "Bash(git rm:*)",
       "Bash(find:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "WebFetch(domain:developers.deepgram.com)",
+      "Bash(node:*)"
     ],
     "deny": []
   }

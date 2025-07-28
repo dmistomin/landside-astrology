@@ -1,4 +1,5 @@
-import { DeepGramConfig, DeepGramResponse, isDeepGramError, isDeepGramResults, ApiError } from '../../types/api';
+import { createClient, LiveTranscriptionEvents, DeepgramClient as DGClient, ListenLiveClient } from '@deepgram/sdk';
+import { DeepGramConfig, ApiError } from '../../types/api';
 
 export type ConnectionState = 'idle' | 'connecting' | 'connected' | 'error' | 'reconnecting';
 
@@ -14,14 +15,14 @@ export type ConnectionStateCallback = (state: ConnectionState) => void;
 export type ErrorCallback = (error: ApiError) => void;
 
 export class DeepGramClient {
-  private ws: WebSocket | null = null;
+  private deepgram: DGClient | null = null;
+  private connection: ListenLiveClient | null = null;
   private config: DeepGramConfig;
   private connectionState: ConnectionState = 'idle';
   private reconnectAttempts = 0;
   private maxReconnectAttempts = 5;
   private reconnectDelay = 1000;
   private reconnectTimeoutId: number | null = null;
-  private keepAliveIntervalId: number | null = null;
   
   private transcriptCallbacks: Set<TranscriptCallback> = new Set();
   private connectionStateCallbacks: Set<ConnectionStateCallback> = new Set();
@@ -35,6 +36,8 @@ export class DeepGramClient {
       channels: 1,
       ...config,
     };
+    
+    this.deepgram = createClient(config.apiKey);
   }
 
   connect(): Promise<void> {
@@ -49,86 +52,97 @@ export class DeepGramClient {
         return;
       }
 
+      if (!this.deepgram) {
+        reject(new Error('DeepGram client not initialized'));
+        return;
+      }
+
       this.setConnectionState('connecting');
 
-      const wsUrl = this.buildWebSocketUrl();
-      console.log('🔵 Built WebSocket URL:', wsUrl);
-      console.log('🔵 Creating WebSocket with subprotocols:', ['token', this.config.apiKey]);
-      
-      this.ws = new WebSocket(wsUrl, ['token', this.config.apiKey]);
+      try {
+        const connectionOptions = {
+          model: this.config.model || 'nova-2',
+          language: this.config.language || 'en',
+          smart_format: this.config.smartFormat || true,
+          punctuate: this.config.punctuate || true,
+          encoding: this.config.encoding || 'linear16',
+          channels: this.config.channels || 1,
+          sample_rate: this.config.sampleRate || 16000,
+          interim_results: true,
+        };
 
-      this.ws.onopen = () => {
-        console.log('✅ DeepGram WebSocket connected successfully!');
-        this.setConnectionState('connected');
-        this.reconnectAttempts = 0;
-        this.startKeepAlive();
-        resolve();
-      };
+        console.log('🔵 Creating live connection with options:', connectionOptions);
+        this.connection = this.deepgram.listen.live(connectionOptions);
 
-      this.ws.onmessage = (event) => {
-        try {
-          const response: DeepGramResponse = JSON.parse(event.data);
-          this.handleWebSocketMessage(response);
-        } catch (error) {
-          console.error('Failed to parse DeepGram response:', error);
+        this.connection.on(LiveTranscriptionEvents.Open, () => {
+          console.log('✅ DeepGram connection opened successfully!');
+          this.setConnectionState('connected');
+          this.reconnectAttempts = 0;
+          resolve();
+        });
+
+        this.connection.on(LiveTranscriptionEvents.Transcript, (data: unknown) => {
+          console.log('🔵 Received transcript data:', data);
+          this.handleTranscriptMessage(data);
+        });
+
+        this.connection.on(LiveTranscriptionEvents.Error, (error: unknown) => {
+          console.error('❌ DeepGram connection error:', error);
+          this.setConnectionState('error');
+          const errorMessage = error && typeof error === 'object' && 'message' in error ? (error as Error).message : 'DeepGram connection error';
           this.notifyError({
-            code: 'PARSE_ERROR',
-            message: 'Failed to parse WebSocket message',
+            code: 'DEEPGRAM_ERROR',
+            message: errorMessage,
             details: error,
           });
-        }
-      };
-
-      this.ws.onclose = (event) => {
-        console.log('❌ DeepGram WebSocket closed:', event.code, event.reason);
-        console.log('❌ Connection state when closed:', this.connectionState);
-        this.stopKeepAlive();
-        
-        if (this.connectionState === 'connected') {
-          this.handleReconnect();
-        } else if (this.connectionState === 'connecting') {
-          reject(new Error(`Connection failed: ${event.reason || 'Unknown error'}`));
-        }
-      };
-
-      this.ws.onerror = (event) => {
-        console.error('❌ DeepGram WebSocket error:', event);
-        console.error('❌ Connection state during error:', this.connectionState);
-        this.setConnectionState('error');
-        this.notifyError({
-          code: 'WEBSOCKET_ERROR',
-          message: 'WebSocket connection error',
-          details: event,
+          
+          if (this.connectionState === 'connecting') {
+            reject(new Error('DeepGram connection failed'));
+          }
         });
-        
-        if (this.connectionState === 'connecting') {
-          console.error('❌ Rejecting connection promise due to error');
-          reject(new Error('WebSocket connection failed'));
-        }
-      };
+
+        this.connection.on(LiveTranscriptionEvents.Close, (event: unknown) => {
+          console.log('❌ DeepGram connection closed:', event);
+          
+          if (this.connectionState === 'connected') {
+            this.handleReconnect();
+          } else if (this.connectionState === 'connecting') {
+            const eventReason = event && typeof event === 'object' && 'reason' in event ? (event as {reason: string}).reason : 'Unknown error';
+            reject(new Error(`Connection failed: ${eventReason}`));
+          }
+        });
+
+      } catch (error) {
+        console.error('❌ Failed to create DeepGram connection:', error);
+        this.setConnectionState('error');
+        reject(error);
+      }
     });
   }
 
   disconnect(): void {
-    this.stopKeepAlive();
     this.clearReconnectTimeout();
     
-    if (this.ws) {
-      this.ws.close(1000, 'Client disconnect');
-      this.ws = null;
+    if (this.connection) {
+      try {
+        this.connection.finish();
+      } catch (error) {
+        console.warn('Error finishing connection:', error);
+      }
+      this.connection = null;
     }
     
     this.setConnectionState('idle');
   }
 
   sendAudioData(audioData: ArrayBuffer): void {
-    if (this.connectionState !== 'connected' || !this.ws) {
-      console.warn('Cannot send audio data: WebSocket not connected');
+    if (this.connectionState !== 'connected' || !this.connection) {
+      console.warn('Cannot send audio data: Connection not established');
       return;
     }
 
     try {
-      this.ws.send(audioData);
+      this.connection.send(audioData);
     } catch (error) {
       console.error('Failed to send audio data:', error);
       this.notifyError({
@@ -159,51 +173,33 @@ export class DeepGramClient {
     return this.connectionState;
   }
 
-  private buildWebSocketUrl(): string {
-    const baseUrl = 'wss://api.deepgram.com/v1/listen';
-    const params = new URLSearchParams({
-      language: this.config.language,
-      punctuate: this.config.punctuate?.toString() || 'true',
-      smart_format: this.config.smartFormat?.toString() || 'true',
-      encoding: this.config.encoding || 'linear16',
-      channels: this.config.channels?.toString() || '1',
-      interim_results: 'true',
-    });
-
-    if (this.config.sampleRate) {
-      params.append('sample_rate', this.config.sampleRate.toString());
-    }
-
-    if (this.config.model) {
-      params.append('model', this.config.model);
-    }
-
-    return `${baseUrl}?${params.toString()}`;
-  }
-
-  private handleWebSocketMessage(response: DeepGramResponse): void {
-    console.log('🔵 Raw WebSocket message received:', response);
+  private handleTranscriptMessage(data: unknown): void {
+    console.log('🔵 Raw transcript message received:', data);
     
-    if (isDeepGramError(response)) {
-      console.log('🔵 DeepGram error response:', response.error);
-      this.notifyError({
-        code: response.error.code,
-        message: response.error.message,
-        details: response.error,
-      });
-      return;
-    }
+    try {
+      if (!data || typeof data !== 'object') {
+        console.log('🔵 Invalid data format received');
+        return;
+      }
 
-    if (isDeepGramResults(response)) {
-      console.log('🔵 DeepGram results response:', response);
-      const alternative = response.channel.alternatives[0];
+      const transcriptData = data as {
+        channel?: {
+          alternatives?: Array<{
+            transcript: string;
+            confidence: number;
+          }>;
+        };
+        is_final?: boolean;
+      };
+
+      const alternative = transcriptData.channel?.alternatives?.[0];
       console.log('🔵 First alternative:', alternative);
       
       if (alternative && alternative.transcript.trim()) {
         const segment: TranscriptSegment = {
           transcript: alternative.transcript,
-          confidence: alternative.confidence,
-          isFinal: response.is_final,
+          confidence: alternative.confidence || 0,
+          isFinal: transcriptData.is_final || false,
           timestamp: Date.now(),
         };
 
@@ -220,8 +216,13 @@ export class DeepGramClient {
       } else {
         console.log('🔵 Skipping empty transcript or no alternative found');
       }
-    } else {
-      console.log('🔵 Unknown message type received:', response);
+    } catch (error) {
+      console.error('Error processing transcript message:', error);
+      this.notifyError({
+        code: 'TRANSCRIPT_PARSE_ERROR',
+        message: 'Failed to parse transcript message',
+        details: error,
+      });
     }
   }
 
@@ -249,20 +250,6 @@ export class DeepGramClient {
     }, delay);
   }
 
-  private startKeepAlive(): void {
-    this.keepAliveIntervalId = window.setInterval(() => {
-      if (this.ws && this.ws.readyState === WebSocket.OPEN) {
-        this.ws.send(JSON.stringify({ type: 'KeepAlive' }));
-      }
-    }, 30000);
-  }
-
-  private stopKeepAlive(): void {
-    if (this.keepAliveIntervalId !== null) {
-      clearInterval(this.keepAliveIntervalId);
-      this.keepAliveIntervalId = null;
-    }
-  }
 
   private clearReconnectTimeout(): void {
     if (this.reconnectTimeoutId !== null) {
