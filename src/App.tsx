@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { AudioControls } from './components/AudioControls';
 import { AudioLevelIndicator } from './components/AudioLevelIndicator';
+import { AudioPlayback } from './components/AudioPlayback';
 import { ApiKeyInput } from './components/ApiKeyInput';
 import { TranscriptDisplay } from './components/TranscriptDisplay';
 import { useAudioTranscription } from './hooks/useAudioTranscription';
@@ -19,6 +20,8 @@ function App() {
     startRecording,
     stopRecording,
     clearTranscript,
+    downloadRecordedAudio,
+    getAudioUrl,
   } = useAudioTranscription({ apiKey });
 
   const handleToggleRecording = async () => {
@@ -114,6 +117,12 @@ function App() {
                 </div>
               )}
             </div>
+
+            {/* Audio Playback */}
+            <AudioPlayback
+              audioUrl={getAudioUrl()}
+              onDownload={() => downloadRecordedAudio('recorded-audio.webm')}
+            />
 
             {/* Audio Error Display */}
             {error && (

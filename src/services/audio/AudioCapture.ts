@@ -14,6 +14,9 @@ export class AudioCapture {
   private levelCallbacks: Set<AudioLevelCallback> = new Set();
   private animationId: number | null = null;
   private capturing = false;
+  private mediaRecorder: MediaRecorder | null = null;
+  private recordedChunks: Blob[] = [];
+  private recordedBlob: Blob | null = null;
 
   constructor(private options: AudioCaptureOptions = {}) {
     this.options = {
@@ -74,6 +77,7 @@ export class AudioCapture {
 
       this.capturing = true;
       this.startLevelMonitoring();
+      this.startRecording();
 
       return this.mediaStream;
     } catch (error) {
@@ -92,6 +96,7 @@ export class AudioCapture {
   }
 
   stopCapture(): void {
+    this.stopRecording();
     this.cleanup();
   }
 
@@ -126,6 +131,65 @@ export class AudioCapture {
     return this.capturing;
   }
 
+  getRecordedAudio(): Blob | null {
+    return this.recordedBlob;
+  }
+
+  downloadRecordedAudio(filename = 'recorded-audio.wav'): void {
+    if (!this.recordedBlob) {
+      console.warn('No recorded audio available for download');
+      return;
+    }
+
+    const url = URL.createObjectURL(this.recordedBlob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  getAudioUrl(): string | null {
+    if (!this.recordedBlob) return null;
+    return URL.createObjectURL(this.recordedBlob);
+  }
+
+  private startRecording(): void {
+    if (!this.mediaStream) return;
+
+    this.recordedChunks = [];
+    this.recordedBlob = null;
+
+    this.mediaRecorder = new MediaRecorder(this.mediaStream, {
+      mimeType: 'audio/webm',
+    });
+
+    this.mediaRecorder.ondataavailable = (event) => {
+      if (event.data.size > 0) {
+        this.recordedChunks.push(event.data);
+      }
+    };
+
+    this.mediaRecorder.onstop = () => {
+      this.recordedBlob = new Blob(this.recordedChunks, {
+        type: 'audio/webm',
+      });
+      console.log('Recording stopped, blob created:', this.recordedBlob);
+    };
+
+    this.mediaRecorder.start(100);
+    console.log('Started recording audio');
+  }
+
+  private stopRecording(): void {
+    if (this.mediaRecorder && this.mediaRecorder.state !== 'inactive') {
+      this.mediaRecorder.stop();
+      console.log('Stopped recording audio');
+    }
+  }
+
   private startLevelMonitoring(): void {
     const monitor = () => {
       if (!this.capturing) return;
@@ -146,6 +210,11 @@ export class AudioCapture {
       cancelAnimationFrame(this.animationId);
       this.animationId = null;
     }
+
+    if (this.mediaRecorder && this.mediaRecorder.state !== 'inactive') {
+      this.mediaRecorder.stop();
+    }
+    this.mediaRecorder = null;
 
     if (this.source) {
       this.source.disconnect();

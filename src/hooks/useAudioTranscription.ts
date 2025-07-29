@@ -21,6 +21,9 @@ interface UseAudioTranscriptionReturn {
   startRecording: () => Promise<void>;
   stopRecording: () => void;
   clearTranscript: () => void;
+  getRecordedAudio: () => Blob | null;
+  downloadRecordedAudio: (filename?: string) => void;
+  getAudioUrl: () => string | null;
 }
 
 export const useAudioTranscription = ({
@@ -225,6 +228,18 @@ export const useAudioTranscription = ({
     setAudioLevel(0);
   }, [cleanupAudioProcessing, disconnectTranscription]);
 
+  const getRecordedAudio = useCallback(() => {
+    return audioCaptureRef.current?.getRecordedAudio() || null;
+  }, []);
+
+  const downloadRecordedAudio = useCallback((filename?: string) => {
+    audioCaptureRef.current?.downloadRecordedAudio(filename);
+  }, []);
+
+  const getAudioUrl = useCallback(() => {
+    return audioCaptureRef.current?.getAudioUrl() || null;
+  }, []);
+
   return {
     isRecording,
     audioLevel,
@@ -235,5 +250,8 @@ export const useAudioTranscription = ({
     startRecording,
     stopRecording,
     clearTranscript,
+    getRecordedAudio,
+    downloadRecordedAudio,
+    getAudioUrl,
   };
 };

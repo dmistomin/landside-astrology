@@ -7,6 +7,9 @@ interface UseAudioStreamReturn {
   error: string | null;
   startRecording: () => Promise<void>;
   stopRecording: () => void;
+  getRecordedAudio: () => Blob | null;
+  downloadRecordedAudio: (filename?: string) => void;
+  getAudioUrl: () => string | null;
 }
 
 export const useAudioStream = (): UseAudioStreamReturn => {
@@ -70,11 +73,26 @@ export const useAudioStream = (): UseAudioStreamReturn => {
     setAudioLevel(0);
   }, []);
 
+  const getRecordedAudio = useCallback(() => {
+    return audioCaptureRef.current?.getRecordedAudio() || null;
+  }, []);
+
+  const downloadRecordedAudio = useCallback((filename?: string) => {
+    audioCaptureRef.current?.downloadRecordedAudio(filename);
+  }, []);
+
+  const getAudioUrl = useCallback(() => {
+    return audioCaptureRef.current?.getAudioUrl() || null;
+  }, []);
+
   return {
     isRecording,
     audioLevel,
     error,
     startRecording,
     stopRecording,
+    getRecordedAudio,
+    downloadRecordedAudio,
+    getAudioUrl,
   };
 };
