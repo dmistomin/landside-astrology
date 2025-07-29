@@ -108,7 +108,7 @@ export const AudioPlayback: React.FC<AudioPlaybackProps> = ({
           />
           <div className="flex justify-between text-xs text-gray-500">
             <span>{formatTime(currentTime)}</span>
-            <span>{formatTime(duration)}</span>
+            <span>{duration ? formatTime(duration) : '∞'}</span>
           </div>
         </div>
 

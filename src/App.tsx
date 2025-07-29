@@ -4,10 +4,12 @@ import { AudioLevelIndicator } from './components/AudioLevelIndicator';
 import { AudioPlayback } from './components/AudioPlayback';
 import { ApiKeyInput } from './components/ApiKeyInput';
 import { TranscriptDisplay } from './components/TranscriptDisplay';
+import { LanguageToggle } from './components/LanguageToggle';
 import { useAudioTranscription } from './hooks/useAudioTranscription';
 
 function App() {
   const [apiKey, setApiKey] = useState<string>('');
+  const [language, setLanguage] = useState<'en' | 'multi'>('en');
   const [isLoading, setIsLoading] = useState(false);
 
   const {
@@ -22,7 +24,7 @@ function App() {
     clearTranscript,
     downloadRecordedAudio,
     getAudioUrl,
-  } = useAudioTranscription({ apiKey });
+  } = useAudioTranscription({ apiKey, language });
 
   const handleToggleRecording = async () => {
     if (isRecording) {
@@ -62,6 +64,13 @@ function App() {
           currentApiKey={apiKey}
           isConnected={isConnected}
           error={transcriptionError?.message}
+        />
+
+        {/* Language Selection */}
+        <LanguageToggle
+          language={language}
+          onLanguageChange={setLanguage}
+          disabled={isRecording}
         />
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

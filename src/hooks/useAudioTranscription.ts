@@ -9,6 +9,7 @@ import { ApiError } from '../types/api';
 
 interface UseAudioTranscriptionProps {
   apiKey?: string;
+  language?: 'en' | 'multi';
 }
 
 interface UseAudioTranscriptionReturn {
@@ -28,6 +29,7 @@ interface UseAudioTranscriptionReturn {
 
 export const useAudioTranscription = ({
   apiKey,
+  language = 'en',
 }: UseAudioTranscriptionProps = {}): UseAudioTranscriptionReturn => {
   const [isRecording, setIsRecording] = useState(false);
   const [audioLevel, setAudioLevel] = useState(0);
@@ -50,6 +52,7 @@ export const useAudioTranscription = ({
     clearTranscript,
   } = useDeepgramTranscription({
     apiKey,
+    language,
     config: {},
   });
 

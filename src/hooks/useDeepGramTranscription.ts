@@ -8,6 +8,7 @@ import { DeepgramConfig, ApiError } from '../types/api';
 
 interface UseDeepgramTranscriptionProps {
   apiKey?: string;
+  language?: 'en' | 'multi';
   config?: Partial<DeepgramConfig>;
 }
 
@@ -24,6 +25,7 @@ interface UseDeepgramTranscriptionReturn {
 
 export const useDeepgramTranscription = ({
   apiKey,
+  language = 'en',
   config = {},
 }: UseDeepgramTranscriptionProps = {}): UseDeepgramTranscriptionReturn => {
   const [client, setClient] = useState<DeepgramClient | null>(null);
@@ -55,7 +57,7 @@ export const useDeepgramTranscription = ({
 
     const fullConfig: DeepgramConfig = {
       apiKey,
-      language: 'en',
+      language,
       punctuate: true,
       smartFormat: true,
       encoding: 'linear16',
@@ -119,7 +121,7 @@ export const useDeepgramTranscription = ({
       }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [apiKey]); // Only recreate client when API key changes
+  }, [apiKey, language]); // Recreate client when API key or language changes
 
   const connect = useCallback(async () => {
     console.log('🟡 useDeepgramTranscription.connect() called');
