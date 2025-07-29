@@ -21,7 +21,7 @@ beforeAll(() => {
   Object.defineProperty(window, 'AudioContext', {
     writable: true,
     value: class AudioContext {
-      sampleRate = 44100;
+      sampleRate = 16000;
       createAnalyser() {
         return {
           fftSize: 256,

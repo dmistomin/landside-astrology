@@ -32,10 +32,10 @@ export const useAudioTranscription = ({
 
   const audioCaptureRef = useRef<AudioCapture | null>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
-  const processorRef = useRef<ScriptProcessorNode | null>(null);
+  const processorRef = useRef<
+    (ScriptProcessorNode & { _loggedChannelInfo?: boolean }) | null
+  >(null);
   const sourceRef = useRef<MediaStreamAudioSourceNode | null>(null);
-
-  const [sampleRate, setSampleRate] = useState<number>(16000);
 
   const {
     connectionState,
@@ -47,7 +47,7 @@ export const useAudioTranscription = ({
     clearTranscript,
   } = useDeepgramTranscription({
     apiKey,
-    config: { sampleRate },
+    config: {},
   });
 
   const cleanupAudioProcessing = useCallback(() => {
@@ -85,10 +85,13 @@ export const useAudioTranscription = ({
         const actualSampleRate = audioContextRef.current.sampleRate;
         console.log(`🔴 Audio context sample rate: ${actualSampleRate}Hz`);
 
-        setSampleRate(actualSampleRate);
-
         sourceRef.current =
           audioContextRef.current.createMediaStreamSource(mediaStream);
+
+        // Log the actual number of channels in the source
+        console.log(
+          `🔴 MediaStreamSource channel count: ${sourceRef.current.channelCount}`
+        );
 
         processorRef.current = audioContextRef.current.createScriptProcessor(
           4096,
@@ -98,11 +101,37 @@ export const useAudioTranscription = ({
 
         processorRef.current.onaudioprocess = (event) => {
           const inputBuffer = event.inputBuffer;
-          const inputData = inputBuffer.getChannelData(0);
 
-          const int16Array = new Int16Array(inputData.length);
-          for (let i = 0; i < inputData.length; i++) {
-            const s = Math.max(-1, Math.min(1, inputData[i]));
+          // Log channel info on first audio process event
+          if (
+            processorRef.current &&
+            !processorRef.current._loggedChannelInfo
+          ) {
+            console.log(
+              `🔴 Input buffer channel count: ${inputBuffer.numberOfChannels}`
+            );
+            processorRef.current._loggedChannelInfo = true;
+          }
+
+          // Handle mono or stereo input
+          let monoData: Float32Array;
+          if (inputBuffer.numberOfChannels === 1) {
+            // Already mono
+            monoData = inputBuffer.getChannelData(0);
+          } else {
+            // Convert stereo to mono by averaging channels
+            const leftChannel = inputBuffer.getChannelData(0);
+            const rightChannel = inputBuffer.getChannelData(1);
+            monoData = new Float32Array(leftChannel.length);
+
+            for (let i = 0; i < leftChannel.length; i++) {
+              monoData[i] = (leftChannel[i] + rightChannel[i]) / 2;
+            }
+          }
+
+          const int16Array = new Int16Array(monoData.length);
+          for (let i = 0; i < monoData.length; i++) {
+            const s = Math.max(-1, Math.min(1, monoData[i]));
             int16Array[i] = s < 0 ? s * 0x8000 : s * 0x7fff;
           }
 

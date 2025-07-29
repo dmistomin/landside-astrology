@@ -1,7 +1,6 @@
 export type AudioLevelCallback = (level: number) => void;
 
 export interface AudioCaptureOptions {
-  sampleRate?: number;
   echoCancellation?: boolean;
   noiseSuppression?: boolean;
   autoGainControl?: boolean;
@@ -43,6 +42,7 @@ export class AudioCapture {
           echoCancellation: this.options.echoCancellation,
           noiseSuppression: this.options.noiseSuppression,
           autoGainControl: this.options.autoGainControl,
+          channelCount: 1, // Request mono audio
         },
       });
 
@@ -53,6 +53,16 @@ export class AudioCapture {
       // Get the actual sample rate from the audio context
       const actualSampleRate = this.audioContext.sampleRate;
       console.log(`Audio context sample rate: ${actualSampleRate}Hz`);
+
+      // Log the actual audio track settings
+      const audioTrack = this.mediaStream.getAudioTracks()[0];
+      if (audioTrack) {
+        const settings = audioTrack.getSettings();
+        console.log('Audio track settings:', settings);
+        console.log(
+          `Channel count: ${settings.channelCount || 'not specified'}`
+        );
+      }
 
       this.analyser = this.audioContext.createAnalyser();
       this.analyser.fftSize = 256;

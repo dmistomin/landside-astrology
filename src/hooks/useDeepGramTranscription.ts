@@ -60,7 +60,7 @@ export const useDeepgramTranscription = ({
       smartFormat: true,
       encoding: 'linear16',
       channels: 1,
-      sampleRate: config?.sampleRate || 16000,
+      sampleRate: 44100, // Match browser's default sample rate
       ...config,
     } as DeepgramConfig;
 

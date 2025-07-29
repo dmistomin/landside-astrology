@@ -39,8 +39,8 @@ export interface APIKeys {
 export interface AudioSettings {
   /** Selected input device ID */
   readonly deviceId?: string;
-  /** Sample rate in Hz */
-  readonly sampleRate: 16000 | 24000 | 44100 | 48000;
+  /** Sample rate in Hz - fixed at 16000 */
+  readonly sampleRate: 16000;
   /** Number of channels */
   readonly channels: 1 | 2;
   /** Enable noise suppression */

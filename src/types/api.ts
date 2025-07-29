@@ -39,8 +39,6 @@ export interface DeepgramConfig {
   readonly diarize?: boolean;
   /** Enable smart formatting */
   readonly smartFormat?: boolean;
-  /** Sample rate of audio */
-  readonly sampleRate?: number;
   /** Audio encoding */
   readonly encoding?:
     | 'linear16'
@@ -52,6 +50,8 @@ export interface DeepgramConfig {
     | 'speex';
   /** Number of audio channels */
   readonly channels?: number;
+  /** Sample rate of the audio (Hz) */
+  readonly sampleRate?: number;
 }
 
 /**

@@ -20,7 +20,7 @@ describe('AudioCapture', () => {
     Object.defineProperty(globalThis, 'AudioContext', {
       writable: true,
       value: vi.fn().mockImplementation(() => ({
-        sampleRate: 44100,
+        sampleRate: 16000,
         createAnalyser: vi.fn().mockReturnValue({
           fftSize: 256,
           smoothingTimeConstant: 0.8,

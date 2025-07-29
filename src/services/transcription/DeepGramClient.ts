@@ -45,6 +45,7 @@ export class DeepgramClient {
       smartFormat: true,
       encoding: 'linear16',
       channels: 1,
+      sampleRate: 44100, // Default to common browser sample rate
       ...config,
     };
 
@@ -81,7 +82,7 @@ export class DeepgramClient {
           punctuate: this.config.punctuate || true,
           encoding: this.config.encoding || 'linear16',
           channels: this.config.channels || 1,
-          sample_rate: this.config.sampleRate || 16000,
+          sample_rate: this.config.sampleRate || 44100,
           interim_results: true,
         };
 
@@ -131,6 +132,9 @@ export class DeepgramClient {
         this.connection.on(LiveTranscriptionEvents.Close, (event: unknown) => {
           console.log('❌ Deepgram connection closed:', event);
 
+          // Always stop keepAlive when connection closes
+          this.stopKeepAlive();
+
           if (this.connectionState === 'connecting') {
             const eventReason =
               event && typeof event === 'object' && 'reason' in event
@@ -171,16 +175,10 @@ export class DeepgramClient {
 
   sendAudioData(audioData: ArrayBuffer): void {
     if (this.connectionState !== 'connected' || !this.connection) {
-      console.warn(
-        `Cannot send audio data: Connection not established (state: ${this.connectionState})`
-      );
       return;
     }
 
     try {
-      console.log(
-        `🔵 Sending ${audioData.byteLength} bytes of audio data to Deepgram`
-      );
       this.connection.send(audioData);
     } catch (error) {
       console.error('Failed to send audio data:', error);
@@ -213,11 +211,8 @@ export class DeepgramClient {
   }
 
   private handleTranscriptMessage(data: unknown): void {
-    console.log('🔵 Raw transcript message received:', data);
-
     try {
       if (!data || typeof data !== 'object') {
-        console.log('🔵 Invalid data format received');
         return;
       }
 
@@ -232,7 +227,6 @@ export class DeepgramClient {
       };
 
       const alternative = transcriptData.channel?.alternatives?.[0];
-      console.log('🔵 First alternative:', alternative);
 
       if (alternative && alternative.transcript.trim()) {
         const segment: TranscriptSegment = {
@@ -242,9 +236,6 @@ export class DeepgramClient {
           timestamp: Date.now(),
         };
 
-        console.log('🔵 Created transcript segment:', segment);
-        console.log('🔵 Notifying', this.transcriptCallbacks.size, 'callbacks');
-
         this.transcriptCallbacks.forEach((callback) => {
           try {
             callback(segment);
@@ -252,8 +243,6 @@ export class DeepgramClient {
             console.error('Error in transcript callback:', error);
           }
         });
-      } else {
-        console.log('🔵 Skipping empty transcript or no alternative found');
       }
     } catch (error) {
       console.error('Error processing transcript message:', error);
@@ -332,7 +321,6 @@ export class DeepgramClient {
     this.keepAliveInterval = window.setInterval(() => {
       if (this.connection && this.connectionState === 'connected') {
         try {
-          console.log('🔵 Sending keepAlive to Deepgram');
           this.connection.keepAlive();
         } catch (error) {
           console.error('Error sending keepAlive:', error);
