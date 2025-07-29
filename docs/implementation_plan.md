@@ -90,8 +90,7 @@
 
 **Step 15-16: Advanced Features**
 - Extract vocabulary using NLP patterns
-- Add PDF/text export with formatting
-- **Test**: Export conversation maintains formatting
+- Add Anki flashcard export for vocabulary and sentences
 
 **Step 17-18: Quality & Performance**
 - Write Vitest unit tests for services
