@@ -3,7 +3,7 @@
 ## 1. App Functionality
 
 ### Core Features
-- **Real-time Audio Transcription**: Capture and transcribe Japanese audio from device microphone using DeepGram's live streaming API
+- **Real-time Audio Transcription**: Capture and transcribe Japanese audio from device microphone using Deepgram's live streaming API
 - **Side-by-Side Translation**: Display Japanese transcription alongside English translation in real-time
 - **Conversation Recording**: Start/stop recording with clear visual indicators
 - **Conversation History**: Save and retrieve past conversations with timestamps
@@ -25,7 +25,7 @@
 - **Storage**: IndexedDB via Dexie.js (TypeScript wrapper)
 
 ### APIs
-- **Speech-to-Text**: DeepGram Live Transcription API
+- **Speech-to-Text**: Deepgram Live Transcription API
   - Supports Japanese with high accuracy
   - WebSocket-based for low latency
   - Handles noisy environments well
@@ -65,7 +65,7 @@
 │  └── StorageService │
 ├─────────────────────┤
 │  External APIs      │
-│  ├── DeepGram WS    │
+│  ├── Deepgram WS    │
 │  └── DeepL REST     │
 └─────────────────────┘
 ```
@@ -84,7 +84,7 @@ src/
 │   │   ├── AudioCapture.ts
 │   │   └── AudioProcessor.ts
 │   ├── transcription/
-│   │   ├── DeepGramClient.ts
+│   │   ├── DeepgramClient.ts
 │   │   └── TranscriptionService.ts
 │   ├── translation/
 │   │   ├── TranslationService.ts

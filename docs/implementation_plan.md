@@ -12,7 +12,7 @@
 **Step 2: Core Type Definitions**
 - Create `src/types/` directory with interfaces for:
   - `conversation.ts`: Conversation, TranscriptionSegment, ExtractedTerm
-  - `api.ts`: DeepGramResponse, DeepLResponse, WebSocketMessage
+  - `api.ts`: DeepgramResponse, DeepLResponse, WebSocketMessage
   - `settings.ts`: UserSettings, APIKeys
 - **Test**: Run `bun typecheck` with no errors
 
@@ -24,8 +24,8 @@
 - Add audio level monitoring
 - **Test**: Console log audio levels when capturing
 
-**Step 4: DeepGram Integration**
-- Create `src/services/transcription/DeepGramClient.ts`
+**Step 4: Deepgram Integration**
+- Create `src/services/transcription/DeepgramClient.ts`
 - Implement WebSocket connection with auto-reconnect
 - Handle streaming audio chunks
 - **Test**: Mock WebSocket server to verify connection handling

@@ -6,7 +6,7 @@ Create the complete TypeScript type definitions for the Real-Time Japanese Trans
 
 1. Create a `src/types/` directory with three main type definition files:
    - `conversation.ts`: Core conversation and transcription types
-   - `api.ts`: API request/response types for DeepGram and DeepL
+   - `api.ts`: API request/response types for Deepgram and DeepL
    - `settings.ts`: User settings and configuration types
 
 2. All types must:
@@ -25,16 +25,16 @@ Create the complete TypeScript type definitions for the Real-Time Japanese Trans
 - Include enums for conversation status (recording, processing, completed, failed)
 
 ### api.ts
-- `DeepGramResponse`: WebSocket message types for live transcription
-- `DeepGramConfig`: Configuration options for the WebSocket connection
+- `DeepgramResponse`: WebSocket message types for live transcription
+- `DeepgramConfig`: Configuration options for the WebSocket connection
 - `DeepLResponse`: Translation API response structure
 - `DeepLRequest`: Translation request parameters
 - `WebSocketMessage`: Generic WebSocket message wrapper with type discrimination
 - Error types for both APIs with specific error codes
 
 **API Documentation References:**
-- DeepGram Live Transcription: https://developers.deepgram.com/reference/listen-live
-- DeepGram WebSocket Guide: https://developers.deepgram.com/docs/lower-level-websockets
+- Deepgram Live Transcription: https://developers.deepgram.com/reference/listen-live
+- Deepgram WebSocket Guide: https://developers.deepgram.com/docs/lower-level-websockets
 - DeepL Translation API: https://developers.deepl.com/api-reference/translate
 - DeepL OpenAPI Spec: https://github.com/DeepLcom/openapi/blob/main/openapi.yaml
 
@@ -42,7 +42,7 @@ Consult these official API documentation sources when implementing the types to 
 
 ### settings.ts
 - `UserSettings`: Application preferences (theme, language settings, audio quality)
-- `APIKeys`: Secure storage structure for DeepGram and DeepL keys
+- `APIKeys`: Secure storage structure for Deepgram and DeepL keys
 - `AudioSettings`: Microphone configuration, sample rate, noise suppression
 - `DisplaySettings`: UI preferences like font size, layout options
 - `ExportSettings`: Format preferences for conversation exports

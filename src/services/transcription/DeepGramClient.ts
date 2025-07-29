@@ -4,7 +4,7 @@ import {
   DeepgramClient as DGClient,
   ListenLiveClient,
 } from '@deepgram/sdk';
-import { DeepGramConfig, ApiError } from '../../types/api';
+import { DeepgramConfig, ApiError } from '../../types/api';
 
 export type ConnectionState =
   | 'idle'
@@ -24,10 +24,10 @@ export type TranscriptCallback = (segment: TranscriptSegment) => void;
 export type ConnectionStateCallback = (state: ConnectionState) => void;
 export type ErrorCallback = (error: ApiError) => void;
 
-export class DeepGramClient {
+export class DeepgramClient {
   private deepgram: DGClient | null = null;
   private connection: ListenLiveClient | null = null;
-  private config: DeepGramConfig;
+  private config: DeepgramConfig;
   private connectionState: ConnectionState = 'idle';
   private reconnectAttempts = 0;
   private maxReconnectAttempts = 5;
@@ -38,7 +38,7 @@ export class DeepGramClient {
   private connectionStateCallbacks: Set<ConnectionStateCallback> = new Set();
   private errorCallbacks: Set<ErrorCallback> = new Set();
 
-  constructor(config: DeepGramConfig) {
+  constructor(config: DeepgramConfig) {
     this.config = {
       punctuate: true,
       smartFormat: true,
@@ -51,7 +51,7 @@ export class DeepGramClient {
   }
 
   connect(): Promise<void> {
-    console.log('🔵 DeepGramClient.connect() called');
+    console.log('🔵 DeepgramClient.connect() called');
     console.log('🔵 Current connection state:', this.connectionState);
     console.log('🔵 API key provided:', !!this.config.apiKey);
 
@@ -66,7 +66,7 @@ export class DeepGramClient {
       }
 
       if (!this.deepgram) {
-        reject(new Error('DeepGram client not initialized'));
+        reject(new Error('Deepgram client not initialized'));
         return;
       }
 
@@ -91,7 +91,7 @@ export class DeepGramClient {
         this.connection = this.deepgram.listen.live(connectionOptions);
 
         this.connection.on(LiveTranscriptionEvents.Open, () => {
-          console.log('✅ DeepGram connection opened successfully!');
+          console.log('✅ Deepgram connection opened successfully!');
           this.setConnectionState('connected');
           this.reconnectAttempts = 0;
           resolve();
@@ -106,12 +106,12 @@ export class DeepGramClient {
         );
 
         this.connection.on(LiveTranscriptionEvents.Error, (error: unknown) => {
-          console.error('❌ DeepGram connection error:', error);
+          console.error('❌ Deepgram connection error:', error);
           this.setConnectionState('error');
           const errorMessage =
             error && typeof error === 'object' && 'message' in error
               ? (error as Error).message
-              : 'DeepGram connection error';
+              : 'Deepgram connection error';
           this.notifyError({
             code: 'DEEPGRAM_ERROR',
             message: errorMessage,
@@ -119,12 +119,12 @@ export class DeepGramClient {
           });
 
           if (this.connectionState === 'connecting') {
-            reject(new Error('DeepGram connection failed'));
+            reject(new Error('Deepgram connection failed'));
           }
         });
 
         this.connection.on(LiveTranscriptionEvents.Close, (event: unknown) => {
-          console.log('❌ DeepGram connection closed:', event);
+          console.log('❌ Deepgram connection closed:', event);
 
           if (this.connectionState === 'connecting') {
             const eventReason =
@@ -141,7 +141,7 @@ export class DeepGramClient {
           }
         });
       } catch (error) {
-        console.error('❌ Failed to create DeepGram connection:', error);
+        console.error('❌ Failed to create Deepgram connection:', error);
         this.setConnectionState('error');
         reject(error);
       }
@@ -173,7 +173,7 @@ export class DeepGramClient {
 
     try {
       console.log(
-        `🔵 Sending ${audioData.byteLength} bytes of audio data to DeepGram`
+        `🔵 Sending ${audioData.byteLength} bytes of audio data to Deepgram`
       );
       this.connection.send(audioData);
     } catch (error) {

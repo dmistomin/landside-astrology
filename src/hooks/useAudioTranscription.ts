@@ -1,10 +1,10 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { AudioCapture } from '../services/audio/AudioCapture';
-import { useDeepGramTranscription } from './useDeepGramTranscription';
+import { useDeepgramTranscription } from './useDeepgramTranscription';
 import {
   ConnectionState,
   TranscriptSegment,
-} from '../services/transcription/DeepGramClient';
+} from '../services/transcription/DeepgramClient';
 import { ApiError } from '../types/api';
 
 interface UseAudioTranscriptionProps {
@@ -45,7 +45,7 @@ export const useAudioTranscription = ({
     disconnect: disconnectTranscription,
     sendAudioData,
     clearTranscript,
-  } = useDeepGramTranscription({
+  } = useDeepgramTranscription({
     apiKey,
     config: { sampleRate },
   });
@@ -139,9 +139,9 @@ export const useAudioTranscription = ({
     try {
       setError(null);
 
-      console.log('🔴 First, connecting to DeepGram transcription service');
+      console.log('🔴 First, connecting to Deepgram transcription service');
       await connectTranscription();
-      console.log('🔴 DeepGram connection established successfully');
+      console.log('🔴 Deepgram connection established successfully');
 
       console.log('🔴 Now starting audio capture');
       const mediaStream = await audioCaptureRef.current.startCapture();
@@ -161,7 +161,7 @@ export const useAudioTranscription = ({
 
       setIsRecording(true);
       console.log(
-        '🔴 Recording started - audio data will now flow to DeepGram'
+        '🔴 Recording started - audio data will now flow to Deepgram'
       );
     } catch (err) {
       const message =

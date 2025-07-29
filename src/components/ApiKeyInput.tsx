@@ -55,7 +55,7 @@ export const ApiKeyInput: React.FC<ApiKeyInputProps> = ({
     <div className="space-y-4 p-4 border border-gray-200 rounded-lg bg-white">
       <div className="flex items-center justify-between">
         <h3 className="text-lg font-medium text-gray-900">
-          DeepGram API Configuration
+          Deepgram API Configuration
         </h3>
         <div className="flex items-center space-x-2">
           <div
@@ -87,7 +87,7 @@ export const ApiKeyInput: React.FC<ApiKeyInputProps> = ({
               type={isVisible ? 'text' : 'password'}
               value={apiKey}
               onChange={(e) => setApiKey(e.target.value)}
-              placeholder="Enter your DeepGram API key"
+              placeholder="Enter your Deepgram API key"
               className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 pr-20 ${
                 !hasValidFormat ? 'border-red-300' : 'border-gray-300'
               }`}

@@ -27,7 +27,7 @@ export type Layout = 'compact' | 'comfortable' | 'spacious';
  * API key storage structure
  */
 export interface APIKeys {
-  /** DeepGram API key (encrypted) */
+  /** Deepgram API key (encrypted) */
   readonly deepgram?: string;
   /** DeepL API key (encrypted) */
   readonly deepl?: string;
@@ -145,7 +145,7 @@ export interface AdvancedSettings {
   readonly debugMode: boolean;
   /** Show performance metrics */
   readonly showPerformanceMetrics: boolean;
-  /** Custom DeepGram model */
+  /** Custom Deepgram model */
   readonly deepgramModel?: string;
   /** WebSocket reconnect attempts */
   readonly maxReconnectAttempts: number;

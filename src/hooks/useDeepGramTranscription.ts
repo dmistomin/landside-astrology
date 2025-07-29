@@ -1,18 +1,18 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import {
-  DeepGramClient,
+  DeepgramClient,
   ConnectionState,
   TranscriptSegment,
-} from '../services/transcription/DeepGramClient';
-import { DeepGramConfig, ApiError } from '../types/api';
+} from '../services/transcription/DeepgramClient';
+import { DeepgramConfig, ApiError } from '../types/api';
 
-interface UseDeepGramTranscriptionProps {
+interface UseDeepgramTranscriptionProps {
   apiKey?: string;
-  config?: Partial<DeepGramConfig>;
+  config?: Partial<DeepgramConfig>;
 }
 
-interface UseDeepGramTranscriptionReturn {
-  client: DeepGramClient | null;
+interface UseDeepgramTranscriptionReturn {
+  client: DeepgramClient | null;
   connectionState: ConnectionState;
   transcriptSegments: TranscriptSegment[];
   error: ApiError | null;
@@ -22,11 +22,11 @@ interface UseDeepGramTranscriptionReturn {
   clearTranscript: () => void;
 }
 
-export const useDeepGramTranscription = ({
+export const useDeepgramTranscription = ({
   apiKey,
   config = {},
-}: UseDeepGramTranscriptionProps = {}): UseDeepGramTranscriptionReturn => {
-  const [client, setClient] = useState<DeepGramClient | null>(null);
+}: UseDeepgramTranscriptionProps = {}): UseDeepgramTranscriptionReturn => {
+  const [client, setClient] = useState<DeepgramClient | null>(null);
   const [connectionState, setConnectionState] =
     useState<ConnectionState>('idle');
   const [transcriptSegments, setTranscriptSegments] = useState<
@@ -34,7 +34,7 @@ export const useDeepGramTranscription = ({
   >([]);
   const [error, setError] = useState<ApiError | null>(null);
 
-  const clientRef = useRef<DeepGramClient | null>(null);
+  const clientRef = useRef<DeepgramClient | null>(null);
 
   const memoizedConfig = useMemo(
     () => ({
@@ -51,7 +51,7 @@ export const useDeepGramTranscription = ({
   );
 
   useEffect(() => {
-    console.log('🟡 useDeepGramTranscription useEffect triggered');
+    console.log('🟡 useDeepgramTranscription useEffect triggered');
     console.log('🟡 API key provided:', !!apiKey);
     console.log('🟡 API key length:', apiKey?.length || 0);
 
@@ -67,17 +67,17 @@ export const useDeepGramTranscription = ({
       return;
     }
 
-    const fullConfig: DeepGramConfig = {
+    const fullConfig: DeepgramConfig = {
       apiKey,
       ...memoizedConfig,
-    } as DeepGramConfig;
+    } as DeepgramConfig;
 
-    console.log('🟡 Creating new DeepGramClient with config:', {
+    console.log('🟡 Creating new DeepgramClient with config:', {
       ...fullConfig,
       apiKey: '***' + fullConfig.apiKey.slice(-4),
     });
 
-    const newClient = new DeepGramClient(fullConfig);
+    const newClient = new DeepgramClient(fullConfig);
     clientRef.current = newClient;
     setClient(newClient);
 
@@ -114,7 +114,7 @@ export const useDeepGramTranscription = ({
     });
 
     // Don't automatically connect - let the consumer decide when to connect
-    console.log('🟡 DeepGram client created, ready for manual connection');
+    console.log('🟡 Deepgram client created, ready for manual connection');
 
     return () => {
       unsubscribeConnectionState();
@@ -129,7 +129,7 @@ export const useDeepGramTranscription = ({
   }, [apiKey, memoizedConfig]);
 
   const connect = useCallback(async () => {
-    console.log('🟡 useDeepGramTranscription.connect() called');
+    console.log('🟡 useDeepgramTranscription.connect() called');
     console.log('🟡 Client available:', !!clientRef.current);
     console.log(
       '🟡 Current connection state:',
@@ -137,8 +137,8 @@ export const useDeepGramTranscription = ({
     );
 
     if (!clientRef.current) {
-      console.error('🟡 No DeepGram client available!');
-      throw new Error('DeepGram client not initialized');
+      console.error('🟡 No Deepgram client available!');
+      throw new Error('Deepgram client not initialized');
     }
 
     // If already connected or connecting, return immediately
@@ -161,7 +161,7 @@ export const useDeepGramTranscription = ({
       const error: ApiError = {
         code: 'CONNECTION_FAILED',
         message:
-          err instanceof Error ? err.message : 'Failed to connect to DeepGram',
+          err instanceof Error ? err.message : 'Failed to connect to Deepgram',
         details: err,
       };
       setError(error);

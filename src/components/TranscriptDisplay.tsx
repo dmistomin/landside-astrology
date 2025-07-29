@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { TranscriptSegment } from '../services/transcription/DeepGramClient';
+import { TranscriptSegment } from '../services/transcription/DeepgramClient';
 
 interface TranscriptDisplayProps {
   segments: TranscriptSegment[];

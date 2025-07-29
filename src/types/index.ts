@@ -23,10 +23,10 @@ export {
 export type {
   ApiState,
   ApiError,
-  DeepGramConfig,
-  DeepGramAlternative,
-  DeepGramTranscriptionResult,
-  DeepGramResponse,
+  DeepgramConfig,
+  DeepgramAlternative,
+  DeepgramTranscriptionResult,
+  DeepgramResponse,
   DeepLRequest,
   DeepLResponse,
   DeepLUsage,
@@ -36,9 +36,9 @@ export type {
 } from './api';
 
 export {
-  DeepGramErrorCode,
-  isDeepGramError,
-  isDeepGramResults,
+  DeepgramErrorCode,
+  isDeepgramError,
+  isDeepgramResults,
   isApiError,
   isApiSuccess,
   isApiLoading,

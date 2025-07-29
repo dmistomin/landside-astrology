@@ -1,7 +1,7 @@
 # Step 1: Project Setup - Real-Time Japanese Translation App
 
 ## Context
-You are building a real-time Japanese translation app that captures audio, transcribes it using DeepGram, and translates it using DeepL. This is the first step in the implementation plan.
+You are building a real-time Japanese translation app that captures audio, transcribes it using Deepgram, and translates it using DeepL. This is the first step in the implementation plan.
 
 ## Tech Stack
 - **Framework**: React 18+ with TypeScript

@@ -31,7 +31,7 @@ export interface TranscriptionSegment {
   readonly startTime: number;
   /** End time of the segment in milliseconds */
   readonly endTime: number;
-  /** Confidence score from DeepGram (0-1) */
+  /** Confidence score from Deepgram (0-1) */
   readonly confidence: number;
   /** Speaker identification if available */
   readonly speaker?: string;

@@ -10,14 +10,14 @@ describe('App', () => {
     ).toBeInTheDocument();
     expect(screen.getByText('Enter API key to begin')).toBeInTheDocument();
     expect(screen.getByLabelText('Start recording')).toBeInTheDocument();
-    expect(screen.getByText('DeepGram API Configuration')).toBeInTheDocument();
+    expect(screen.getByText('Deepgram API Configuration')).toBeInTheDocument();
   });
 
   it('shows API key input', () => {
     render(<App />);
     expect(screen.getByLabelText('API Key')).toBeInTheDocument();
     expect(
-      screen.getByPlaceholderText('Enter your DeepGram API key')
+      screen.getByPlaceholderText('Enter your Deepgram API key')
     ).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Connect' })).toBeInTheDocument();
   });

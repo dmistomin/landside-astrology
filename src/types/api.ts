@@ -16,13 +16,13 @@ export interface ApiError {
 }
 
 /**
- * DeepGram API Types
+ * Deepgram API Types
  */
 
 /**
- * DeepGram WebSocket configuration
+ * Deepgram WebSocket configuration
  */
-export interface DeepGramConfig {
+export interface DeepgramConfig {
   /** API key for authentication */
   readonly apiKey: string;
   /** Language code for transcription */
@@ -55,9 +55,9 @@ export interface DeepGramConfig {
 }
 
 /**
- * DeepGram transcription alternative
+ * Deepgram transcription alternative
  */
-export interface DeepGramAlternative {
+export interface DeepgramAlternative {
   readonly transcript: string;
   readonly confidence: number;
   readonly words?: ReadonlyArray<{
@@ -70,11 +70,11 @@ export interface DeepGramAlternative {
 }
 
 /**
- * DeepGram transcription result
+ * Deepgram transcription result
  */
-export interface DeepGramTranscriptionResult {
+export interface DeepgramTranscriptionResult {
   readonly channel: {
-    readonly alternatives: ReadonlyArray<DeepGramAlternative>;
+    readonly alternatives: ReadonlyArray<DeepgramAlternative>;
   };
   readonly start: number;
   readonly duration: number;
@@ -83,9 +83,9 @@ export interface DeepGramTranscriptionResult {
 }
 
 /**
- * DeepGram WebSocket response types
+ * Deepgram WebSocket response types
  */
-export type DeepGramResponse =
+export type DeepgramResponse =
   | {
       readonly type: 'Results';
       readonly channel_index: ReadonlyArray<number>;
@@ -94,7 +94,7 @@ export type DeepGramResponse =
       readonly is_final: boolean;
       readonly speech_final: boolean;
       readonly channel: {
-        readonly alternatives: ReadonlyArray<DeepGramAlternative>;
+        readonly alternatives: ReadonlyArray<DeepgramAlternative>;
       };
     }
   | {
@@ -126,9 +126,9 @@ export type DeepGramResponse =
     };
 
 /**
- * DeepGram error codes
+ * Deepgram error codes
  */
-export enum DeepGramErrorCode {
+export enum DeepgramErrorCode {
   BadRequest = 'BAD_REQUEST',
   Unauthorized = 'UNAUTHORIZED',
   Forbidden = 'FORBIDDEN',
@@ -219,15 +219,15 @@ export type WebSocketMessage<T = unknown> =
  * Type guards for API responses
  */
 
-export function isDeepGramError(
-  response: DeepGramResponse
-): response is Extract<DeepGramResponse, { type: 'Error' }> {
+export function isDeepgramError(
+  response: DeepgramResponse
+): response is Extract<DeepgramResponse, { type: 'Error' }> {
   return response.type === 'Error';
 }
 
-export function isDeepGramResults(
-  response: DeepGramResponse
-): response is Extract<DeepGramResponse, { type: 'Results' }> {
+export function isDeepgramResults(
+  response: DeepgramResponse
+): response is Extract<DeepgramResponse, { type: 'Results' }> {
   return response.type === 'Results';
 }
 
