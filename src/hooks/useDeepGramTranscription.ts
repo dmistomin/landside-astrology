@@ -36,20 +36,6 @@ export const useDeepgramTranscription = ({
 
   const clientRef = useRef<DeepgramClient | null>(null);
 
-  const memoizedConfig = useMemo(
-    () => ({
-      language: 'en',
-      punctuate: true,
-      smartFormat: true,
-      encoding: 'linear16',
-      channels: 1,
-      sampleRate: 16000,
-      ...config,
-    }),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [config.sampleRate]
-  );
-
   useEffect(() => {
     console.log('🟡 useDeepgramTranscription useEffect triggered');
     console.log('🟡 API key provided:', !!apiKey);
@@ -69,7 +55,13 @@ export const useDeepgramTranscription = ({
 
     const fullConfig: DeepgramConfig = {
       apiKey,
-      ...memoizedConfig,
+      language: 'en',
+      punctuate: true,
+      smartFormat: true,
+      encoding: 'linear16',
+      channels: 1,
+      sampleRate: config?.sampleRate || 16000,
+      ...config,
     } as DeepgramConfig;
 
     console.log('🟡 Creating new DeepgramClient with config:', {
@@ -126,7 +118,7 @@ export const useDeepgramTranscription = ({
         clientRef.current = null;
       }
     };
-  }, [apiKey, memoizedConfig]);
+  }, [apiKey]); // Only recreate client when API key changes
 
   const connect = useCallback(async () => {
     console.log('🟡 useDeepgramTranscription.connect() called');
