@@ -1,7 +1,17 @@
-import { createClient, LiveTranscriptionEvents, DeepgramClient as DGClient, ListenLiveClient } from '@deepgram/sdk';
+import {
+  createClient,
+  LiveTranscriptionEvents,
+  DeepgramClient as DGClient,
+  ListenLiveClient,
+} from '@deepgram/sdk';
 import { DeepGramConfig, ApiError } from '../../types/api';
 
-export type ConnectionState = 'idle' | 'connecting' | 'connected' | 'error' | 'reconnecting';
+export type ConnectionState =
+  | 'idle'
+  | 'connecting'
+  | 'connected'
+  | 'error'
+  | 'reconnecting';
 
 export interface TranscriptSegment {
   transcript: string;
@@ -23,7 +33,7 @@ export class DeepGramClient {
   private maxReconnectAttempts = 5;
   private reconnectDelay = 1000;
   private reconnectTimeoutId: number | null = null;
-  
+
   private transcriptCallbacks: Set<TranscriptCallback> = new Set();
   private connectionStateCallbacks: Set<ConnectionStateCallback> = new Set();
   private errorCallbacks: Set<ErrorCallback> = new Set();
@@ -36,7 +46,7 @@ export class DeepGramClient {
       channels: 1,
       ...config,
     };
-    
+
     this.deepgram = createClient(config.apiKey);
   }
 
@@ -44,9 +54,12 @@ export class DeepGramClient {
     console.log('🔵 DeepGramClient.connect() called');
     console.log('🔵 Current connection state:', this.connectionState);
     console.log('🔵 API key provided:', !!this.config.apiKey);
-    
+
     return new Promise((resolve, reject) => {
-      if (this.connectionState === 'connected' || this.connectionState === 'connecting') {
+      if (
+        this.connectionState === 'connected' ||
+        this.connectionState === 'connecting'
+      ) {
         console.log('🔵 Already connected/connecting, resolving immediately');
         resolve();
         return;
@@ -71,7 +84,10 @@ export class DeepGramClient {
           interim_results: true,
         };
 
-        console.log('🔵 Creating live connection with options:', connectionOptions);
+        console.log(
+          '🔵 Creating live connection with options:',
+          connectionOptions
+        );
         this.connection = this.deepgram.listen.live(connectionOptions);
 
         this.connection.on(LiveTranscriptionEvents.Open, () => {
@@ -81,21 +97,27 @@ export class DeepGramClient {
           resolve();
         });
 
-        this.connection.on(LiveTranscriptionEvents.Transcript, (data: unknown) => {
-          console.log('🔵 Received transcript data:', data);
-          this.handleTranscriptMessage(data);
-        });
+        this.connection.on(
+          LiveTranscriptionEvents.Transcript,
+          (data: unknown) => {
+            console.log('🔵 Received transcript data:', data);
+            this.handleTranscriptMessage(data);
+          }
+        );
 
         this.connection.on(LiveTranscriptionEvents.Error, (error: unknown) => {
           console.error('❌ DeepGram connection error:', error);
           this.setConnectionState('error');
-          const errorMessage = error && typeof error === 'object' && 'message' in error ? (error as Error).message : 'DeepGram connection error';
+          const errorMessage =
+            error && typeof error === 'object' && 'message' in error
+              ? (error as Error).message
+              : 'DeepGram connection error';
           this.notifyError({
             code: 'DEEPGRAM_ERROR',
             message: errorMessage,
             details: error,
           });
-          
+
           if (this.connectionState === 'connecting') {
             reject(new Error('DeepGram connection failed'));
           }
@@ -103,17 +125,21 @@ export class DeepGramClient {
 
         this.connection.on(LiveTranscriptionEvents.Close, (event: unknown) => {
           console.log('❌ DeepGram connection closed:', event);
-          
+
           if (this.connectionState === 'connecting') {
-            const eventReason = event && typeof event === 'object' && 'reason' in event ? (event as {reason: string}).reason : 'Unknown error';
+            const eventReason =
+              event && typeof event === 'object' && 'reason' in event
+                ? (event as { reason: string }).reason
+                : 'Unknown error';
             reject(new Error(`Connection failed: ${eventReason}`));
           } else if (this.connectionState === 'connected') {
             // Only attempt reconnect if we were actively connected and this wasn't a manual disconnect
-            console.log('🔄 Connection closed while active, will not auto-reconnect. Manual reconnection required.');
+            console.log(
+              '🔄 Connection closed while active, will not auto-reconnect. Manual reconnection required.'
+            );
             this.setConnectionState('idle');
           }
         });
-
       } catch (error) {
         console.error('❌ Failed to create DeepGram connection:', error);
         this.setConnectionState('error');
@@ -124,7 +150,7 @@ export class DeepGramClient {
 
   disconnect(): void {
     this.clearReconnectTimeout();
-    
+
     if (this.connection) {
       try {
         this.connection.finish();
@@ -133,18 +159,22 @@ export class DeepGramClient {
       }
       this.connection = null;
     }
-    
+
     this.setConnectionState('idle');
   }
 
   sendAudioData(audioData: ArrayBuffer): void {
     if (this.connectionState !== 'connected' || !this.connection) {
-      console.warn(`Cannot send audio data: Connection not established (state: ${this.connectionState})`);
+      console.warn(
+        `Cannot send audio data: Connection not established (state: ${this.connectionState})`
+      );
       return;
     }
 
     try {
-      console.log(`🔵 Sending ${audioData.byteLength} bytes of audio data to DeepGram`);
+      console.log(
+        `🔵 Sending ${audioData.byteLength} bytes of audio data to DeepGram`
+      );
       this.connection.send(audioData);
     } catch (error) {
       console.error('Failed to send audio data:', error);
@@ -178,7 +208,7 @@ export class DeepGramClient {
 
   private handleTranscriptMessage(data: unknown): void {
     console.log('🔵 Raw transcript message received:', data);
-    
+
     try {
       if (!data || typeof data !== 'object') {
         console.log('🔵 Invalid data format received');
@@ -197,7 +227,7 @@ export class DeepGramClient {
 
       const alternative = transcriptData.channel?.alternatives?.[0];
       console.log('🔵 First alternative:', alternative);
-      
+
       if (alternative && alternative.transcript.trim()) {
         const segment: TranscriptSegment = {
           transcript: alternative.transcript,
@@ -209,7 +239,7 @@ export class DeepGramClient {
         console.log('🔵 Created transcript segment:', segment);
         console.log('🔵 Notifying', this.transcriptCallbacks.size, 'callbacks');
 
-        this.transcriptCallbacks.forEach(callback => {
+        this.transcriptCallbacks.forEach((callback) => {
           try {
             callback(segment);
           } catch (error) {
@@ -243,16 +273,17 @@ export class DeepGramClient {
     this.reconnectAttempts++;
 
     const delay = this.reconnectDelay * Math.pow(2, this.reconnectAttempts - 1);
-    console.log(`Attempting to reconnect in ${delay}ms (attempt ${this.reconnectAttempts})`);
+    console.log(
+      `Attempting to reconnect in ${delay}ms (attempt ${this.reconnectAttempts})`
+    );
 
     this.reconnectTimeoutId = window.setTimeout(() => {
-      this.connect().catch(error => {
+      this.connect().catch((error) => {
         console.error('Reconnection failed:', error);
         this.handleReconnect();
       });
     }, delay);
   }
-
 
   private clearReconnectTimeout(): void {
     if (this.reconnectTimeoutId !== null) {
@@ -263,9 +294,11 @@ export class DeepGramClient {
 
   private setConnectionState(state: ConnectionState): void {
     if (this.connectionState !== state) {
-      console.log(`🔄 Connection state changed: ${this.connectionState} -> ${state}`);
+      console.log(
+        `🔄 Connection state changed: ${this.connectionState} -> ${state}`
+      );
       this.connectionState = state;
-      this.connectionStateCallbacks.forEach(callback => {
+      this.connectionStateCallbacks.forEach((callback) => {
         try {
           callback(state);
         } catch (error) {
@@ -276,7 +309,7 @@ export class DeepGramClient {
   }
 
   private notifyError(error: ApiError): void {
-    this.errorCallbacks.forEach(callback => {
+    this.errorCallbacks.forEach((callback) => {
       try {
         callback(error);
       } catch (callbackError) {

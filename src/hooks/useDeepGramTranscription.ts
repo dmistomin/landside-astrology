@@ -1,5 +1,9 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import { DeepGramClient, ConnectionState, TranscriptSegment } from '../services/transcription/DeepGramClient';
+import {
+  DeepGramClient,
+  ConnectionState,
+  TranscriptSegment,
+} from '../services/transcription/DeepGramClient';
 import { DeepGramConfig, ApiError } from '../types/api';
 
 interface UseDeepGramTranscriptionProps {
@@ -23,28 +27,34 @@ export const useDeepGramTranscription = ({
   config = {},
 }: UseDeepGramTranscriptionProps = {}): UseDeepGramTranscriptionReturn => {
   const [client, setClient] = useState<DeepGramClient | null>(null);
-  const [connectionState, setConnectionState] = useState<ConnectionState>('idle');
-  const [transcriptSegments, setTranscriptSegments] = useState<TranscriptSegment[]>([]);
+  const [connectionState, setConnectionState] =
+    useState<ConnectionState>('idle');
+  const [transcriptSegments, setTranscriptSegments] = useState<
+    TranscriptSegment[]
+  >([]);
   const [error, setError] = useState<ApiError | null>(null);
-  
+
   const clientRef = useRef<DeepGramClient | null>(null);
 
-  const memoizedConfig = useMemo(() => ({
-    language: 'en',
-    punctuate: true,
-    smartFormat: true,
-    encoding: 'linear16',
-    channels: 1,
-    sampleRate: 16000,
-    ...config,
+  const memoizedConfig = useMemo(
+    () => ({
+      language: 'en',
+      punctuate: true,
+      smartFormat: true,
+      encoding: 'linear16',
+      channels: 1,
+      sampleRate: 16000,
+      ...config,
+    }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }), [config.sampleRate]);
+    [config.sampleRate]
+  );
 
   useEffect(() => {
     console.log('🟡 useDeepGramTranscription useEffect triggered');
     console.log('🟡 API key provided:', !!apiKey);
     console.log('🟡 API key length:', apiKey?.length || 0);
-    
+
     if (!apiKey) {
       console.log('🟡 No API key, cleaning up existing client');
       if (clientRef.current) {
@@ -64,7 +74,7 @@ export const useDeepGramTranscription = ({
 
     console.log('🟡 Creating new DeepGramClient with config:', {
       ...fullConfig,
-      apiKey: '***' + fullConfig.apiKey.slice(-4)
+      apiKey: '***' + fullConfig.apiKey.slice(-4),
     });
 
     const newClient = new DeepGramClient(fullConfig);
@@ -77,17 +87,23 @@ export const useDeepGramTranscription = ({
 
     const unsubscribeTranscript = newClient.onTranscript((segment) => {
       console.log('🟡 Received transcript segment:', segment);
-      setTranscriptSegments(prev => {
+      setTranscriptSegments((prev) => {
         console.log('🟡 Current segments before update:', prev.length);
         if (segment.isFinal) {
-          const filtered = prev.filter(s => s.isFinal);
+          const filtered = prev.filter((s) => s.isFinal);
           const newSegments = [...filtered, segment];
-          console.log('🟡 Adding final segment, new total:', newSegments.length);
+          console.log(
+            '🟡 Adding final segment, new total:',
+            newSegments.length
+          );
           return newSegments;
         } else {
-          const filtered = prev.filter(s => s.isFinal);
+          const filtered = prev.filter((s) => s.isFinal);
           const newSegments = [...filtered, segment];
-          console.log('🟡 Adding interim segment, new total:', newSegments.length);
+          console.log(
+            '🟡 Adding interim segment, new total:',
+            newSegments.length
+          );
           return newSegments;
         }
       });
@@ -104,7 +120,7 @@ export const useDeepGramTranscription = ({
       unsubscribeConnectionState();
       unsubscribeTranscript();
       unsubscribeError();
-      
+
       if (clientRef.current) {
         clientRef.current.disconnect();
         clientRef.current = null;
@@ -115,8 +131,11 @@ export const useDeepGramTranscription = ({
   const connect = useCallback(async () => {
     console.log('🟡 useDeepGramTranscription.connect() called');
     console.log('🟡 Client available:', !!clientRef.current);
-    console.log('🟡 Current connection state:', clientRef.current?.getConnectionState());
-    
+    console.log(
+      '🟡 Current connection state:',
+      clientRef.current?.getConnectionState()
+    );
+
     if (!clientRef.current) {
       console.error('🟡 No DeepGram client available!');
       throw new Error('DeepGram client not initialized');
@@ -125,7 +144,9 @@ export const useDeepGramTranscription = ({
     // If already connected or connecting, return immediately
     const currentState = clientRef.current.getConnectionState();
     if (currentState === 'connected' || currentState === 'connecting') {
-      console.log('🟡 Already connected/connecting, skipping connection attempt');
+      console.log(
+        '🟡 Already connected/connecting, skipping connection attempt'
+      );
       return;
     }
 
@@ -139,7 +160,8 @@ export const useDeepGramTranscription = ({
       console.error('🟡 Client connection failed:', err);
       const error: ApiError = {
         code: 'CONNECTION_FAILED',
-        message: err instanceof Error ? err.message : 'Failed to connect to DeepGram',
+        message:
+          err instanceof Error ? err.message : 'Failed to connect to DeepGram',
         details: err,
       };
       setError(error);
@@ -154,11 +176,14 @@ export const useDeepGramTranscription = ({
     setError(null);
   }, []);
 
-  const sendAudioData = useCallback((data: ArrayBuffer) => {
-    if (clientRef.current && connectionState === 'connected') {
-      clientRef.current.sendAudioData(data);
-    }
-  }, [connectionState]);
+  const sendAudioData = useCallback(
+    (data: ArrayBuffer) => {
+      if (clientRef.current && connectionState === 'connected') {
+        clientRef.current.sendAudioData(data);
+      }
+    },
+    [connectionState]
+  );
 
   const clearTranscript = useCallback(() => {
     setTranscriptSegments([]);

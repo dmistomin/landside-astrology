@@ -11,10 +11,10 @@ describe('AudioCapture', () => {
       value: {
         mediaDevices: {
           getUserMedia: vi.fn().mockResolvedValue({
-            getTracks: () => [{ stop: vi.fn() }]
-          })
-        }
-      }
+            getTracks: () => [{ stop: vi.fn() }],
+          }),
+        },
+      },
     });
 
     Object.defineProperty(globalThis, 'AudioContext', {
@@ -27,14 +27,14 @@ describe('AudioCapture', () => {
           frequencyBinCount: 128,
           getByteTimeDomainData: vi.fn(),
           connect: vi.fn(),
-          disconnect: vi.fn()
+          disconnect: vi.fn(),
         }),
         createMediaStreamSource: vi.fn().mockReturnValue({
           connect: vi.fn(),
-          disconnect: vi.fn()
+          disconnect: vi.fn(),
         }),
-        close: vi.fn()
-      }))
+        close: vi.fn(),
+      })),
     });
 
     audioCapture = new AudioCapture();
@@ -51,7 +51,7 @@ describe('AudioCapture', () => {
 
   it('subscribes and unsubscribes to audio level updates', () => {
     const callback = vi.fn();
-    
+
     const unsubscribe = audioCapture.onAudioLevel(callback);
     expect(typeof unsubscribe).toBe('function');
 
@@ -67,7 +67,7 @@ describe('AudioCapture', () => {
     };
 
     const customAudioCapture = new AudioCapture(customOptions);
-    
+
     expect(customAudioCapture.isCapturing()).toBe(false);
   });
 });

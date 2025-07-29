@@ -16,17 +16,18 @@ export const TranscriptDisplay: React.FC<TranscriptDisplayProps> = ({
 
   useEffect(() => {
     if (scrollContainerRef.current) {
-      scrollContainerRef.current.scrollTop = scrollContainerRef.current.scrollHeight;
+      scrollContainerRef.current.scrollTop =
+        scrollContainerRef.current.scrollHeight;
     }
   }, [segments]);
 
   const formatTimestamp = (timestamp: number): string => {
     const date = new Date(timestamp);
-    return date.toLocaleTimeString([], { 
-      hour12: false, 
-      hour: '2-digit', 
-      minute: '2-digit', 
-      second: '2-digit' 
+    return date.toLocaleTimeString([], {
+      hour12: false,
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
     });
   };
 
@@ -40,8 +41,8 @@ export const TranscriptDisplay: React.FC<TranscriptDisplayProps> = ({
     return `${Math.round(confidence * 100)}%`;
   };
 
-  const finalSegments = segments.filter(s => s.isFinal);
-  const interimSegments = segments.filter(s => !s.isFinal);
+  const finalSegments = segments.filter((s) => s.isFinal);
+  const interimSegments = segments.filter((s) => !s.isFinal);
   const latestInterim = interimSegments[interimSegments.length - 1];
 
   return (
@@ -72,8 +73,18 @@ export const TranscriptDisplay: React.FC<TranscriptDisplayProps> = ({
         {segments.length === 0 && (
           <div className="flex items-center justify-center h-full text-gray-400">
             <div className="text-center">
-              <svg className="w-8 h-8 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+              <svg
+                className="w-8 h-8 mx-auto mb-2"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"
+                />
               </svg>
               <p className="text-sm">Start recording to see transcript here</p>
             </div>
@@ -81,19 +92,26 @@ export const TranscriptDisplay: React.FC<TranscriptDisplayProps> = ({
         )}
 
         {finalSegments.map((segment, index) => (
-          <div key={`final-${index}`} className="bg-white p-3 rounded border border-gray-200">
+          <div
+            key={`final-${index}`}
+            className="bg-white p-3 rounded border border-gray-200"
+          >
             <div className="flex items-start justify-between mb-2">
               <span className="text-xs text-gray-500 font-mono">
                 {formatTimestamp(segment.timestamp)}
               </span>
               <div className="flex items-center space-x-1">
                 <span className="text-xs text-gray-500">Final</span>
-                <span className={`text-xs font-medium ${getConfidenceColor(segment.confidence)}`}>
+                <span
+                  className={`text-xs font-medium ${getConfidenceColor(segment.confidence)}`}
+                >
                   {getConfidenceText(segment.confidence)}
                 </span>
               </div>
             </div>
-            <p className="text-gray-900 leading-relaxed">{segment.transcript}</p>
+            <p className="text-gray-900 leading-relaxed">
+              {segment.transcript}
+            </p>
           </div>
         ))}
 
@@ -105,12 +123,16 @@ export const TranscriptDisplay: React.FC<TranscriptDisplayProps> = ({
               </span>
               <div className="flex items-center space-x-1">
                 <span className="text-xs text-blue-600">Interim</span>
-                <span className={`text-xs font-medium ${getConfidenceColor(latestInterim.confidence)}`}>
+                <span
+                  className={`text-xs font-medium ${getConfidenceColor(latestInterim.confidence)}`}
+                >
                   {getConfidenceText(latestInterim.confidence)}
                 </span>
               </div>
             </div>
-            <p className="text-blue-800 leading-relaxed italic">{latestInterim.transcript}</p>
+            <p className="text-blue-800 leading-relaxed italic">
+              {latestInterim.transcript}
+            </p>
           </div>
         )}
       </div>
@@ -118,10 +140,12 @@ export const TranscriptDisplay: React.FC<TranscriptDisplayProps> = ({
       {segments.length > 0 && (
         <div className="text-xs text-gray-500 flex justify-between">
           <span>
-            {finalSegments.length} final segment{finalSegments.length !== 1 ? 's' : ''}
+            {finalSegments.length} final segment
+            {finalSegments.length !== 1 ? 's' : ''}
           </span>
           <span>
-            {interimSegments.length} interim result{interimSegments.length !== 1 ? 's' : ''}
+            {interimSegments.length} interim result
+            {interimSegments.length !== 1 ? 's' : ''}
           </span>
         </div>
       )}

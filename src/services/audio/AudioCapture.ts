@@ -49,11 +49,11 @@ export class AudioCapture {
       // Create audio context without specifying sample rate
       // This will use the default sample rate of the audio hardware
       this.audioContext = new AudioContext();
-      
+
       // Get the actual sample rate from the audio context
       const actualSampleRate = this.audioContext.sampleRate;
       console.log(`Audio context sample rate: ${actualSampleRate}Hz`);
-      
+
       this.analyser = this.audioContext.createAnalyser();
       this.analyser.fftSize = 256;
       this.analyser.smoothingTimeConstant = 0.8;
@@ -98,14 +98,14 @@ export class AudioCapture {
       sum += normalized * normalized;
     }
     const rms = Math.sqrt(sum / dataArray.length);
-    
+
     // Convert to 0-100 scale
     return Math.min(100, Math.round(rms * 200));
   }
 
   onAudioLevel(callback: AudioLevelCallback): () => void {
     this.levelCallbacks.add(callback);
-    
+
     // Return unsubscribe function
     return () => {
       this.levelCallbacks.delete(callback);
@@ -121,7 +121,7 @@ export class AudioCapture {
       if (!this.capturing) return;
 
       const level = this.getAudioLevel();
-      this.levelCallbacks.forEach(callback => callback(level));
+      this.levelCallbacks.forEach((callback) => callback(level));
 
       this.animationId = requestAnimationFrame(monitor);
     };
@@ -152,7 +152,7 @@ export class AudioCapture {
     }
 
     if (this.mediaStream) {
-      this.mediaStream.getTracks().forEach(track => track.stop());
+      this.mediaStream.getTracks().forEach((track) => track.stop());
       this.mediaStream = null;
     }
   }

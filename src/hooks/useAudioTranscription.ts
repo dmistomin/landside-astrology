@@ -1,7 +1,10 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { AudioCapture } from '../services/audio/AudioCapture';
 import { useDeepGramTranscription } from './useDeepGramTranscription';
-import { ConnectionState, TranscriptSegment } from '../services/transcription/DeepGramClient';
+import {
+  ConnectionState,
+  TranscriptSegment,
+} from '../services/transcription/DeepGramClient';
 import { ApiError } from '../types/api';
 
 interface UseAudioTranscriptionProps {
@@ -26,7 +29,7 @@ export const useAudioTranscription = ({
   const [isRecording, setIsRecording] = useState(false);
   const [audioLevel, setAudioLevel] = useState(0);
   const [error, setError] = useState<string | null>(null);
-  
+
   const audioCaptureRef = useRef<AudioCapture | null>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
   const processorRef = useRef<ScriptProcessorNode | null>(null);
@@ -42,9 +45,9 @@ export const useAudioTranscription = ({
     disconnect: disconnectTranscription,
     sendAudioData,
     clearTranscript,
-  } = useDeepGramTranscription({ 
+  } = useDeepGramTranscription({
     apiKey,
-    config: { sampleRate }
+    config: { sampleRate },
   });
 
   const cleanupAudioProcessing = useCallback(() => {
@@ -52,12 +55,12 @@ export const useAudioTranscription = ({
       processorRef.current.disconnect();
       processorRef.current = null;
     }
-    
+
     if (sourceRef.current) {
       sourceRef.current.disconnect();
       sourceRef.current = null;
     }
-    
+
     if (audioContextRef.current) {
       audioContextRef.current.close();
       audioContextRef.current = null;
@@ -75,50 +78,59 @@ export const useAudioTranscription = ({
     };
   }, [cleanupAudioProcessing]);
 
-  const setupAudioProcessing = useCallback(async (mediaStream: MediaStream) => {
-    try {
-      audioContextRef.current = new AudioContext();
-      const actualSampleRate = audioContextRef.current.sampleRate;
-      console.log(`🔴 Audio context sample rate: ${actualSampleRate}Hz`);
-      
-      setSampleRate(actualSampleRate);
-      
-      sourceRef.current = audioContextRef.current.createMediaStreamSource(mediaStream);
-      
-      processorRef.current = audioContextRef.current.createScriptProcessor(4096, 1, 1);
-      
-      processorRef.current.onaudioprocess = (event) => {
-        if (!isRecording || connectionState !== 'connected') {
-          return;
-        }
+  const setupAudioProcessing = useCallback(
+    async (mediaStream: MediaStream) => {
+      try {
+        audioContextRef.current = new AudioContext();
+        const actualSampleRate = audioContextRef.current.sampleRate;
+        console.log(`🔴 Audio context sample rate: ${actualSampleRate}Hz`);
 
-        const inputBuffer = event.inputBuffer;
-        const inputData = inputBuffer.getChannelData(0);
-        
-        const int16Array = new Int16Array(inputData.length);
-        for (let i = 0; i < inputData.length; i++) {
-          const s = Math.max(-1, Math.min(1, inputData[i]));
-          int16Array[i] = s < 0 ? s * 0x8000 : s * 0x7FFF;
-        }
-        
-        console.log(`🔴 Sending audio data: ${int16Array.length} samples (connection state: ${connectionState})`);
-        sendAudioData(int16Array.buffer);
-      };
+        setSampleRate(actualSampleRate);
 
-      sourceRef.current.connect(processorRef.current);
-      processorRef.current.connect(audioContextRef.current.destination);
-      
-    } catch (err) {
-      console.error('Failed to setup audio processing:', err);
-      throw new Error('Failed to setup audio processing for transcription');
-    }
-  }, [isRecording, sendAudioData, connectionState]);
+        sourceRef.current =
+          audioContextRef.current.createMediaStreamSource(mediaStream);
+
+        processorRef.current = audioContextRef.current.createScriptProcessor(
+          4096,
+          1,
+          1
+        );
+
+        processorRef.current.onaudioprocess = (event) => {
+          if (!isRecording || connectionState !== 'connected') {
+            return;
+          }
+
+          const inputBuffer = event.inputBuffer;
+          const inputData = inputBuffer.getChannelData(0);
+
+          const int16Array = new Int16Array(inputData.length);
+          for (let i = 0; i < inputData.length; i++) {
+            const s = Math.max(-1, Math.min(1, inputData[i]));
+            int16Array[i] = s < 0 ? s * 0x8000 : s * 0x7fff;
+          }
+
+          console.log(
+            `🔴 Sending audio data: ${int16Array.length} samples (connection state: ${connectionState})`
+          );
+          sendAudioData(int16Array.buffer);
+        };
+
+        sourceRef.current.connect(processorRef.current);
+        processorRef.current.connect(audioContextRef.current.destination);
+      } catch (err) {
+        console.error('Failed to setup audio processing:', err);
+        throw new Error('Failed to setup audio processing for transcription');
+      }
+    },
+    [isRecording, sendAudioData, connectionState]
+  );
 
   const startRecording = useCallback(async () => {
     console.log('🔴 useAudioTranscription.startRecording() called');
     console.log('🔴 Audio capture available:', !!audioCaptureRef.current);
     console.log('🔴 API key available:', !!apiKey);
-    
+
     if (!audioCaptureRef.current || !apiKey) {
       console.log('🔴 Missing requirements, exiting early');
       return;
@@ -134,7 +146,7 @@ export const useAudioTranscription = ({
       console.log('🔴 Now starting audio capture');
       const mediaStream = await audioCaptureRef.current.startCapture();
       console.log('🔴 Audio capture started successfully');
-      
+
       await setupAudioProcessing(mediaStream);
       console.log('🔴 Audio processing setup completed');
 
@@ -142,32 +154,43 @@ export const useAudioTranscription = ({
         setAudioLevel(level);
       });
 
-      const currentCapture = audioCaptureRef.current as AudioCapture & { _unsubscribe?: () => void };
+      const currentCapture = audioCaptureRef.current as AudioCapture & {
+        _unsubscribe?: () => void;
+      };
       currentCapture._unsubscribe = unsubscribe;
 
       setIsRecording(true);
-      console.log('🔴 Recording started - audio data will now flow to DeepGram');
-
+      console.log(
+        '🔴 Recording started - audio data will now flow to DeepGram'
+      );
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Failed to start recording';
+      const message =
+        err instanceof Error ? err.message : 'Failed to start recording';
       console.error('🔴 startRecording failed:', err);
       console.error('🔴 Error message:', message);
       setError(message);
-      
+
       cleanupAudioProcessing();
-      
+
       if (audioCaptureRef.current?.isCapturing()) {
         audioCaptureRef.current.stopCapture();
       }
-      
+
       setIsRecording(false);
     }
-  }, [apiKey, connectTranscription, setupAudioProcessing, cleanupAudioProcessing]);
+  }, [
+    apiKey,
+    connectTranscription,
+    setupAudioProcessing,
+    cleanupAudioProcessing,
+  ]);
 
   const stopRecording = useCallback(() => {
     if (!audioCaptureRef.current) return;
 
-    const currentCapture = audioCaptureRef.current as AudioCapture & { _unsubscribe?: () => void };
+    const currentCapture = audioCaptureRef.current as AudioCapture & {
+      _unsubscribe?: () => void;
+    };
     if (currentCapture._unsubscribe) {
       currentCapture._unsubscribe();
     }
@@ -175,7 +198,7 @@ export const useAudioTranscription = ({
     audioCaptureRef.current.stopCapture();
     cleanupAudioProcessing();
     disconnectTranscription();
-    
+
     setIsRecording(false);
     setAudioLevel(0);
   }, [cleanupAudioProcessing, disconnectTranscription]);

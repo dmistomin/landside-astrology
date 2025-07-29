@@ -17,19 +17,20 @@ export const AudioLevelIndicator: React.FC<AudioLevelIndicatorProps> = ({
       {Array.from({ length: bars }, (_, i) => {
         const isBarActive = i < activeBars && isActive;
         const barHeight = ((i + 1) / bars) * 100;
-        
+
         return (
           <div
             key={i}
             className={`
               w-2 rounded-full transition-all duration-100
-              ${isBarActive 
-                ? i < bars * 0.6 
-                  ? 'bg-green-500' 
-                  : i < bars * 0.85 
-                    ? 'bg-yellow-500' 
-                    : 'bg-red-500'
-                : 'bg-gray-600'
+              ${
+                isBarActive
+                  ? i < bars * 0.6
+                    ? 'bg-green-500'
+                    : i < bars * 0.85
+                      ? 'bg-yellow-500'
+                      : 'bg-red-500'
+                  : 'bg-gray-600'
               }
             `}
             style={{

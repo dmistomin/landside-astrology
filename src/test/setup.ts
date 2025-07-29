@@ -5,17 +5,19 @@ beforeAll(() => {
   Object.defineProperty(window, 'MediaStream', {
     writable: true,
     value: class MediaStream {
-      getTracks() { return []; }
-    }
+      getTracks() {
+        return [];
+      }
+    },
   });
-  
+
   Object.defineProperty(window.navigator, 'mediaDevices', {
     writable: true,
     value: {
-      getUserMedia: () => Promise.resolve(new window.MediaStream())
-    }
+      getUserMedia: () => Promise.resolve(new window.MediaStream()),
+    },
   });
-  
+
   Object.defineProperty(window, 'AudioContext', {
     writable: true,
     value: class AudioContext {
@@ -27,23 +29,23 @@ beforeAll(() => {
           frequencyBinCount: 128,
           getByteTimeDomainData: () => {},
           connect: () => {},
-          disconnect: () => {}
+          disconnect: () => {},
         };
       }
       createMediaStreamSource() {
         return { connect: () => {}, disconnect: () => {} };
       }
       close() {}
-    }
+    },
   });
-  
+
   Object.defineProperty(window, 'requestAnimationFrame', {
     writable: true,
-    value: (callback: () => void) => setTimeout(callback, 16)
+    value: (callback: () => void) => setTimeout(callback, 16),
   });
-  
+
   Object.defineProperty(window, 'cancelAnimationFrame', {
     writable: true,
-    value: (id: number) => clearTimeout(id)
+    value: (id: number) => clearTimeout(id),
   });
 });
