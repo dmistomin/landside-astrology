@@ -28,7 +28,7 @@ export interface DeepgramConfig {
   /** Language code for transcription */
   readonly language: 'ja' | 'en';
   /** Model to use for transcription */
-  readonly model?: 'nova-2' | 'nova' | 'enhanced' | 'base';
+  readonly model?: 'nova-3' | 'nova-2' | 'nova' | 'enhanced' | 'base';
   /** Enable punctuation */
   readonly punctuate?: boolean;
   /** Enable profanity filter */

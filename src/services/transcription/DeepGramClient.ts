@@ -74,7 +74,7 @@ export class DeepgramClient {
 
       try {
         const connectionOptions = {
-          model: this.config.model || 'nova-2',
+          model: this.config.model || 'nova-3',
           language: this.config.language || 'en',
           smart_format: this.config.smartFormat || true,
           punctuate: this.config.punctuate || true,
