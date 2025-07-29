@@ -5,15 +5,15 @@
 
 ## Available Commands
 Run these commands with `bun`:
-- `bun dev` - Start development server
-- `bun build` - Build for production (runs TypeScript check first)
-- `bun preview` - Preview production build
-- `bun typecheck` - Run TypeScript type checking
-- `bun lint` - Run ESLint (max 0 warnings)
-- `bun format` - Format code with Prettier
-- `bun test` - Run tests with Vitest
-- `bun test:ui` - Run tests with UI
-- `bun test:coverage` - Run tests with coverage
+- `bun run dev` - Start development server
+- `bun run build` - Build for production (runs TypeScript check first)
+- `bun run preview` - Preview production build
+- `bun run typecheck` - Run TypeScript type checking
+- `bun run lint` - Run ESLint (max 0 warnings)
+- `bun run format` - Format code with Prettier
+- `bun run test` - Run tests with Vitest
+- `bun run test:ui` - Run tests with UI
+- `bun run test:coverage` - Run tests with coverage
 
 ## Code Style Guidelines
 
