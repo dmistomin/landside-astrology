@@ -33,6 +33,7 @@ export class DeepgramClient {
   private maxReconnectAttempts = 5;
   private reconnectDelay = 1000;
   private reconnectTimeoutId: number | null = null;
+  private keepAliveInterval: number | null = null;
 
   private transcriptCallbacks: Set<TranscriptCallback> = new Set();
   private connectionStateCallbacks: Set<ConnectionStateCallback> = new Set();
@@ -94,6 +95,10 @@ export class DeepgramClient {
           console.log('✅ Deepgram connection opened successfully!');
           this.setConnectionState('connected');
           this.reconnectAttempts = 0;
+
+          // Start keepAlive interval to prevent timeout
+          this.startKeepAlive();
+
           resolve();
         });
 
@@ -150,6 +155,7 @@ export class DeepgramClient {
 
   disconnect(): void {
     this.clearReconnectTimeout();
+    this.stopKeepAlive();
 
     if (this.connection) {
       try {
@@ -316,5 +322,29 @@ export class DeepgramClient {
         console.error('Error in error callback:', callbackError);
       }
     });
+  }
+
+  private startKeepAlive(): void {
+    if (this.keepAliveInterval) {
+      clearInterval(this.keepAliveInterval);
+    }
+
+    this.keepAliveInterval = window.setInterval(() => {
+      if (this.connection && this.connectionState === 'connected') {
+        try {
+          console.log('🔵 Sending keepAlive to Deepgram');
+          this.connection.keepAlive();
+        } catch (error) {
+          console.error('Error sending keepAlive:', error);
+        }
+      }
+    }, 8000); // Send keepAlive every 8 seconds (before the 10 second timeout)
+  }
+
+  private stopKeepAlive(): void {
+    if (this.keepAliveInterval) {
+      clearInterval(this.keepAliveInterval);
+      this.keepAliveInterval = null;
+    }
   }
 }

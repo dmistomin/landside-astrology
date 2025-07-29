@@ -97,10 +97,6 @@ export const useAudioTranscription = ({
         );
 
         processorRef.current.onaudioprocess = (event) => {
-          if (!isRecording || connectionState !== 'connected') {
-            return;
-          }
-
           const inputBuffer = event.inputBuffer;
           const inputData = inputBuffer.getChannelData(0);
 
@@ -110,9 +106,6 @@ export const useAudioTranscription = ({
             int16Array[i] = s < 0 ? s * 0x8000 : s * 0x7fff;
           }
 
-          console.log(
-            `🔴 Sending audio data: ${int16Array.length} samples (connection state: ${connectionState})`
-          );
           sendAudioData(int16Array.buffer);
         };
 
@@ -123,7 +116,7 @@ export const useAudioTranscription = ({
         throw new Error('Failed to setup audio processing for transcription');
       }
     },
-    [isRecording, sendAudioData, connectionState]
+    [sendAudioData]
   );
 
   const startRecording = useCallback(async () => {

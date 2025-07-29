@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import {
   DeepgramClient,
   ConnectionState,
@@ -118,6 +118,7 @@ export const useDeepgramTranscription = ({
         clientRef.current = null;
       }
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [apiKey]); // Only recreate client when API key changes
 
   const connect = useCallback(async () => {
@@ -168,14 +169,11 @@ export const useDeepgramTranscription = ({
     setError(null);
   }, []);
 
-  const sendAudioData = useCallback(
-    (data: ArrayBuffer) => {
-      if (clientRef.current && connectionState === 'connected') {
-        clientRef.current.sendAudioData(data);
-      }
-    },
-    [connectionState]
-  );
+  const sendAudioData = useCallback((data: ArrayBuffer) => {
+    if (clientRef.current) {
+      clientRef.current.sendAudioData(data);
+    }
+  }, []);
 
   const clearTranscript = useCallback(() => {
     setTranscriptSegments([]);
