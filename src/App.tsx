@@ -3,12 +3,10 @@ import { AudioControls } from './components/AudioControls';
 import { AudioLevelIndicator } from './components/AudioLevelIndicator';
 import { AudioPlayback } from './components/AudioPlayback';
 import { TranscriptDisplay } from './components/TranscriptDisplay';
-import { LanguageToggle } from './components/LanguageToggle';
 import { useAudioTranscription } from './hooks/useAudioTranscription';
 
 function App() {
   const apiKey = import.meta.env.VITE_DEEPGRAM_API_KEY || '';
-  const [language, setLanguage] = useState<'en' | 'multi'>('en');
   const [isLoading, setIsLoading] = useState(false);
 
   const {
@@ -23,7 +21,7 @@ function App() {
     clearTranscript,
     downloadRecordedAudio,
     getAudioUrl,
-  } = useAudioTranscription({ apiKey, language });
+  } = useAudioTranscription({ apiKey, language: 'multi' });
 
   const handleToggleRecording = async () => {
     if (isRecording) {
@@ -103,13 +101,6 @@ function App() {
             )}
           </div>
         )}
-
-        {/* Language Selection */}
-        <LanguageToggle
-          language={language}
-          onLanguageChange={setLanguage}
-          disabled={isRecording}
-        />
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Left Column: Audio Controls */}
