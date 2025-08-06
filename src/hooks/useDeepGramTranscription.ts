@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import {
   DeepgramClient,
   ConnectionState,
@@ -32,12 +32,14 @@ export const useDeepgramTranscription = ({
     TranscriptSegment[]
   >([]);
   const [error, setError] = useState<ApiError | null>(null);
+  const [client, setClient] = useState<DeepgramClient | null>(null);
 
-  // Create client only once using useMemo
-  const client = useMemo(() => {
+  // Create and set up client when apiKey or language changes
+  useEffect(() => {
     if (!apiKey) {
       console.log('🟡 No API key provided, client not created');
-      return null;
+      setClient(null);
+      return;
     }
 
     const fullConfig: DeepgramConfig = {
@@ -55,18 +57,14 @@ export const useDeepgramTranscription = ({
       apiKey: '***' + fullConfig.apiKey.slice(-4),
     });
 
-    return new DeepgramClient(fullConfig);
-  }, [apiKey, language]);
+    const newClient = new DeepgramClient(fullConfig);
 
-  // Set up event listeners
-  useEffect(() => {
-    if (!client) return;
-
-    const unsubscribeConnectionState = client.onConnectionState((state) => {
+    // Set up event listeners
+    const unsubscribeConnectionState = newClient.onConnectionState((state) => {
       setConnectionState(state);
     });
 
-    const unsubscribeTranscript = client.onTranscript((segment) => {
+    const unsubscribeTranscript = newClient.onTranscript((segment) => {
       console.log('🟡 Received transcript segment:', segment);
       setTranscriptSegments((prev) => {
         console.log('🟡 Current segments before update:', prev.length);
@@ -90,21 +88,23 @@ export const useDeepgramTranscription = ({
       });
     });
 
-    const unsubscribeError = client.onError((err) => {
+    const unsubscribeError = newClient.onError((err) => {
       setError(err);
     });
 
     console.log('🟡 Deepgram client listeners set up');
+    setClient(newClient);
 
+    // Cleanup
     return () => {
       unsubscribeConnectionState();
       unsubscribeTranscript();
       unsubscribeError();
-      client.disconnect();
+      newClient.disconnect();
     };
-  }, [client]);
+  }, [apiKey, language]);
 
-  const connect = useCallback(async () => {
+  const connect = async () => {
     console.log('🟡 useDeepgramTranscription.connect() called');
     console.log('🟡 Client available:', !!client);
     console.log('🟡 Current connection state:', client?.getConnectionState());
@@ -140,28 +140,25 @@ export const useDeepgramTranscription = ({
       setError(error);
       throw error;
     }
-  }, [client]);
+  };
 
-  const disconnect = useCallback(() => {
+  const disconnect = () => {
     if (client) {
       client.disconnect();
     }
     setError(null);
-  }, [client]);
+  };
 
-  const sendAudioData = useCallback(
-    (data: ArrayBuffer) => {
-      if (client) {
-        client.sendAudioData(data);
-      }
-    },
-    [client]
-  );
+  const sendAudioData = (data: ArrayBuffer) => {
+    if (client) {
+      client.sendAudioData(data);
+    }
+  };
 
-  const clearTranscript = useCallback(() => {
+  const clearTranscript = () => {
     setTranscriptSegments([]);
     setError(null);
-  }, []);
+  };
 
   return {
     client,

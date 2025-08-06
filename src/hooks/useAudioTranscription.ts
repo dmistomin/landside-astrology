@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { AudioCapture } from '../services/audio/AudioCapture';
 import { useDeepgramTranscription } from './useDeepgramTranscription';
 import {
@@ -41,6 +41,7 @@ export const useAudioTranscription = ({
     (ScriptProcessorNode & { _loggedChannelInfo?: boolean }) | null
   >(null);
   const sourceRef = useRef<MediaStreamAudioSourceNode | null>(null);
+  const audioLevelUnsubscribeRef = useRef<(() => void) | null>(null);
 
   const {
     connectionState,
@@ -55,7 +56,19 @@ export const useAudioTranscription = ({
     language,
   });
 
-  const cleanupAudioProcessing = useCallback(() => {
+  // Initialize AudioCapture on mount
+  useEffect(() => {
+    audioCaptureRef.current = new AudioCapture();
+
+    return () => {
+      if (audioCaptureRef.current?.isCapturing()) {
+        audioCaptureRef.current.stopCapture();
+      }
+      cleanupAudioProcessing();
+    };
+  }, []);
+
+  const cleanupAudioProcessing = () => {
     if (processorRef.current) {
       processorRef.current.disconnect();
       processorRef.current = null;
@@ -70,90 +83,78 @@ export const useAudioTranscription = ({
       audioContextRef.current.close();
       audioContextRef.current = null;
     }
-  }, []);
 
-  useEffect(() => {
-    audioCaptureRef.current = new AudioCapture();
+    if (audioLevelUnsubscribeRef.current) {
+      audioLevelUnsubscribeRef.current();
+      audioLevelUnsubscribeRef.current = null;
+    }
+  };
 
-    return () => {
-      if (audioCaptureRef.current?.isCapturing()) {
-        audioCaptureRef.current.stopCapture();
-      }
-      cleanupAudioProcessing();
-    };
-  }, [cleanupAudioProcessing]);
+  const setupAudioProcessing = async (mediaStream: MediaStream) => {
+    try {
+      audioContextRef.current = new AudioContext();
+      const actualSampleRate = audioContextRef.current.sampleRate;
+      console.log(`🔴 Audio context sample rate: ${actualSampleRate}Hz`);
 
-  const setupAudioProcessing = useCallback(
-    async (mediaStream: MediaStream) => {
-      try {
-        audioContextRef.current = new AudioContext();
-        const actualSampleRate = audioContextRef.current.sampleRate;
-        console.log(`🔴 Audio context sample rate: ${actualSampleRate}Hz`);
+      sourceRef.current =
+        audioContextRef.current.createMediaStreamSource(mediaStream);
 
-        sourceRef.current =
-          audioContextRef.current.createMediaStreamSource(mediaStream);
+      // Log the actual number of channels in the source
+      console.log(
+        `🔴 MediaStreamSource channel count: ${sourceRef.current.channelCount}`
+      );
 
-        // Log the actual number of channels in the source
-        console.log(
-          `🔴 MediaStreamSource channel count: ${sourceRef.current.channelCount}`
-        );
+      processorRef.current = audioContextRef.current.createScriptProcessor(
+        4096,
+        1,
+        1
+      );
 
-        processorRef.current = audioContextRef.current.createScriptProcessor(
-          4096,
-          1,
-          1
-        );
+      processorRef.current.onaudioprocess = (event) => {
+        const inputBuffer = event.inputBuffer;
 
-        processorRef.current.onaudioprocess = (event) => {
-          const inputBuffer = event.inputBuffer;
+        // Log channel info on first audio process event
+        if (processorRef.current && !processorRef.current._loggedChannelInfo) {
+          console.log(
+            `🔴 Input buffer channel count: ${inputBuffer.numberOfChannels}`
+          );
+          processorRef.current._loggedChannelInfo = true;
+        }
 
-          // Log channel info on first audio process event
-          if (
-            processorRef.current &&
-            !processorRef.current._loggedChannelInfo
-          ) {
-            console.log(
-              `🔴 Input buffer channel count: ${inputBuffer.numberOfChannels}`
-            );
-            processorRef.current._loggedChannelInfo = true;
+        // Handle mono or stereo input
+        let monoData: Float32Array;
+        if (inputBuffer.numberOfChannels === 1) {
+          // Already mono
+          monoData = inputBuffer.getChannelData(0);
+        } else {
+          // Convert stereo to mono by averaging channels
+          const leftChannel = inputBuffer.getChannelData(0);
+          const rightChannel = inputBuffer.getChannelData(1);
+          monoData = new Float32Array(leftChannel.length);
+
+          for (let i = 0; i < leftChannel.length; i++) {
+            monoData[i] = (leftChannel[i] + rightChannel[i]) / 2;
           }
+        }
 
-          // Handle mono or stereo input
-          let monoData: Float32Array;
-          if (inputBuffer.numberOfChannels === 1) {
-            // Already mono
-            monoData = inputBuffer.getChannelData(0);
-          } else {
-            // Convert stereo to mono by averaging channels
-            const leftChannel = inputBuffer.getChannelData(0);
-            const rightChannel = inputBuffer.getChannelData(1);
-            monoData = new Float32Array(leftChannel.length);
+        const int16Array = new Int16Array(monoData.length);
+        for (let i = 0; i < monoData.length; i++) {
+          const s = Math.max(-1, Math.min(1, monoData[i]));
+          int16Array[i] = s < 0 ? s * 0x8000 : s * 0x7fff;
+        }
 
-            for (let i = 0; i < leftChannel.length; i++) {
-              monoData[i] = (leftChannel[i] + rightChannel[i]) / 2;
-            }
-          }
+        sendAudioData(int16Array.buffer);
+      };
 
-          const int16Array = new Int16Array(monoData.length);
-          for (let i = 0; i < monoData.length; i++) {
-            const s = Math.max(-1, Math.min(1, monoData[i]));
-            int16Array[i] = s < 0 ? s * 0x8000 : s * 0x7fff;
-          }
+      sourceRef.current.connect(processorRef.current);
+      processorRef.current.connect(audioContextRef.current.destination);
+    } catch (err) {
+      console.error('Failed to setup audio processing:', err);
+      throw new Error('Failed to setup audio processing for transcription');
+    }
+  };
 
-          sendAudioData(int16Array.buffer);
-        };
-
-        sourceRef.current.connect(processorRef.current);
-        processorRef.current.connect(audioContextRef.current.destination);
-      } catch (err) {
-        console.error('Failed to setup audio processing:', err);
-        throw new Error('Failed to setup audio processing for transcription');
-      }
-    },
-    [sendAudioData]
-  );
-
-  const startRecording = useCallback(async () => {
+  const startRecording = async () => {
     console.log('🔴 useAudioTranscription.startRecording() called');
     console.log('🔴 Audio capture available:', !!audioCaptureRef.current);
     console.log('🔴 API key available:', !!apiKey);
@@ -177,14 +178,11 @@ export const useAudioTranscription = ({
       await setupAudioProcessing(mediaStream);
       console.log('🔴 Audio processing setup completed');
 
-      const unsubscribe = audioCaptureRef.current.onAudioLevel((level) => {
-        setAudioLevel(level);
-      });
-
-      const currentCapture = audioCaptureRef.current as AudioCapture & {
-        _unsubscribe?: () => void;
-      };
-      currentCapture._unsubscribe = unsubscribe;
+      audioLevelUnsubscribeRef.current = audioCaptureRef.current.onAudioLevel(
+        (level) => {
+          setAudioLevel(level);
+        }
+      );
 
       setIsRecording(true);
       console.log(
@@ -205,22 +203,10 @@ export const useAudioTranscription = ({
 
       setIsRecording(false);
     }
-  }, [
-    apiKey,
-    connectTranscription,
-    setupAudioProcessing,
-    cleanupAudioProcessing,
-  ]);
+  };
 
-  const stopRecording = useCallback(() => {
+  const stopRecording = () => {
     if (!audioCaptureRef.current) return;
-
-    const currentCapture = audioCaptureRef.current as AudioCapture & {
-      _unsubscribe?: () => void;
-    };
-    if (currentCapture._unsubscribe) {
-      currentCapture._unsubscribe();
-    }
 
     audioCaptureRef.current.stopCapture();
     cleanupAudioProcessing();
@@ -228,19 +214,19 @@ export const useAudioTranscription = ({
 
     setIsRecording(false);
     setAudioLevel(0);
-  }, [cleanupAudioProcessing, disconnectTranscription]);
+  };
 
-  const getRecordedAudio = useCallback(() => {
+  const getRecordedAudio = () => {
     return audioCaptureRef.current?.getRecordedAudio() || null;
-  }, []);
+  };
 
-  const downloadRecordedAudio = useCallback((filename?: string) => {
+  const downloadRecordedAudio = (filename?: string) => {
     audioCaptureRef.current?.downloadRecordedAudio(filename);
-  }, []);
+  };
 
-  const getAudioUrl = useCallback(() => {
+  const getAudioUrl = () => {
     return audioCaptureRef.current?.getAudioUrl() || null;
-  }, []);
+  };
 
   return {
     isRecording,
