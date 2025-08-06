@@ -9,7 +9,6 @@ import { DeepgramConfig, ApiError } from '../types/api';
 interface UseDeepgramTranscriptionProps {
   apiKey?: string;
   language?: 'en' | 'multi';
-  config?: Partial<DeepgramConfig>;
 }
 
 interface UseDeepgramTranscriptionReturn {
@@ -26,7 +25,6 @@ interface UseDeepgramTranscriptionReturn {
 export const useDeepgramTranscription = ({
   apiKey,
   language = 'en',
-  config = {},
 }: UseDeepgramTranscriptionProps = {}): UseDeepgramTranscriptionReturn => {
   const [connectionState, setConnectionState] =
     useState<ConnectionState>('idle');
@@ -50,7 +48,6 @@ export const useDeepgramTranscription = ({
       encoding: 'linear16',
       channels: 1,
       sampleRate: 44100, // Match browser's default sample rate
-      ...config,
     } as DeepgramConfig;
 
     console.log('🟡 Creating new DeepgramClient with config:', {
@@ -59,7 +56,7 @@ export const useDeepgramTranscription = ({
     });
 
     return new DeepgramClient(fullConfig);
-  }, [apiKey, language, config]);
+  }, [apiKey, language]);
 
   // Set up event listeners
   useEffect(() => {

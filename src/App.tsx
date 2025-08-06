@@ -23,6 +23,7 @@ function App() {
     getAudioUrl,
   } = useAudioTranscription({ apiKey, language: 'multi' });
 
+
   const handleToggleRecording = async () => {
     if (isRecording) {
       stopRecording();

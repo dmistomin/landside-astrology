@@ -29,7 +29,7 @@ interface UseAudioTranscriptionReturn {
 
 export const useAudioTranscription = ({
   apiKey,
-  language = 'en',
+  language = 'multi',
 }: UseAudioTranscriptionProps = {}): UseAudioTranscriptionReturn => {
   const [isRecording, setIsRecording] = useState(false);
   const [audioLevel, setAudioLevel] = useState(0);
@@ -53,7 +53,6 @@ export const useAudioTranscription = ({
   } = useDeepgramTranscription({
     apiKey,
     language,
-    config: {},
   });
 
   const cleanupAudioProcessing = useCallback(() => {
