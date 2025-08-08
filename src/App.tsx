@@ -54,7 +54,6 @@ function App() {
       <div className="max-w-4xl mx-auto space-y-6 py-20 px-4">
         <AppHeader />
 
-
         {!apiKey && <ApiKeyWarning />}
 
         {apiKey && (

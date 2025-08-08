@@ -1,7 +1,7 @@
 import React from 'react';
 
 import { ConnectionState } from '../services/transcription/DeepgramClient';
-import { ConnectionBadge } from './ConnectionBadge'
+import { ConnectionBadge } from './ConnectionBadge';
 
 interface AppBarProps {
   title: string;
@@ -17,4 +17,4 @@ export const AppBar: React.FC<AppBarProps> = ({ title, connectionState }) => {
       </div>
     </div>
   );
-}
+};
