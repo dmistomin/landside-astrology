@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { ApiKeyWarning } from './components/ApiKeyWarning';
 import { AppHeader } from './components/AppHeader';
+import { AppBar } from './components/AppBar';
 import { AudioErrorDisplay } from './components/AudioErrorDisplay';
 import { AudioPlayback } from './components/AudioPlayback';
 import { ConnectionStatus } from './components/ConnectionStatus';
@@ -49,8 +50,10 @@ function App() {
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-4xl mx-auto space-y-6 px-4">
+      <AppBar title="'Landside Astrology'" connectionState={connectionState} />
+      <div className="max-w-4xl mx-auto space-y-6 py-20 px-4">
         <AppHeader />
+
 
         {!apiKey && <ApiKeyWarning />}
 
