@@ -1,4 +1,13 @@
 import React from 'react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import {
+  faHourglass,
+  faBolt,
+  faExclamationTriangle,
+  faMagnifyingGlass,
+  faSpinner,
+  faQuestion,
+} from '@fortawesome/free-solid-svg-icons';
 import { ConnectionState } from '../services/transcription/DeepgramClient';
 
 interface ConnectionBadgeProps {
@@ -25,10 +34,32 @@ export const ConnectionBadge: React.FC<ConnectionBadgeProps> = ({
     }
   };
 
+  const getIconByStatus = (status: ConnectionState) => {
+    switch (status) {
+      case 'idle':
+        return faHourglass;
+      case 'connecting':
+        return faSpinner;
+      case 'connected':
+        return faBolt;
+      case 'error':
+        return faExclamationTriangle;
+      case 'reconnecting':
+        return faMagnifyingGlass;
+      default:
+        return faQuestion;
+    }
+  };
+
   return (
     <span
-      className={`${getStylesByStatus(connectionState)} text-md font-medium capitalize px-5 py-0.8 rounded-full`}
+      className={`${getStylesByStatus(connectionState)} text-md font-medium capitalize px-5 py-0.8 rounded-full inline-flex items-center gap-2`}
     >
+      <FontAwesomeIcon
+        icon={getIconByStatus(connectionState)}
+        className={connectionState === 'connecting' ? 'animate-spin' : ''}
+        size="sm"
+      />
       {connectionState}
     </span>
   );
