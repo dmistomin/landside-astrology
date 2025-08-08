@@ -4,7 +4,6 @@ import { AppHeader } from './components/AppHeader';
 import { AppBar } from './components/AppBar';
 import { AudioErrorDisplay } from './components/AudioErrorDisplay';
 import { AudioPlayback } from './components/AudioPlayback';
-import { ConnectionStatus } from './components/ConnectionStatus';
 import { RecordingPanel } from './components/RecordingPanel';
 import { TranscriptDisplay } from './components/TranscriptDisplay';
 import { useAudioTranscription } from './hooks/useAudioTranscription';
@@ -19,7 +18,6 @@ function App() {
     connectionState,
     transcriptSegments,
     error,
-    transcriptionError,
     startRecording,
     stopRecording,
     clearTranscript,
@@ -45,25 +43,15 @@ function App() {
     }
   };
 
-  const isConnected = connectionState === 'connected';
   const canRecord = !!apiKey && !isLoading;
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
-      <AppBar title="'Landside Astrology'" connectionState={connectionState} />
+      <AppBar title="'Landside Astrology'" apiKey={apiKey} connectionState={connectionState} />
       <div className="max-w-4xl mx-auto space-y-6 py-20 px-4">
         <AppHeader />
 
         {!apiKey && <ApiKeyWarning />}
-
-        {apiKey && (
-          <ConnectionStatus
-            connectionState={connectionState}
-            isConnected={isConnected}
-            transcriptionError={transcriptionError}
-          />
-        )}
-
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Left Column: Audio Controls */}
           <div className="space-y-6">
