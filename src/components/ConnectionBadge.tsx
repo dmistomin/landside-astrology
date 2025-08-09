@@ -7,14 +7,17 @@ import {
   faMagnifyingGlass,
   faSpinner,
   faQuestion,
+  faLinkSlash,
 } from '@fortawesome/free-solid-svg-icons';
 import { ConnectionState } from '../services/transcription/DeepgramClient';
 
 interface ConnectionBadgeProps {
+  apiKey: string;
   connectionState: ConnectionState;
 }
 
 export const ConnectionBadge: React.FC<ConnectionBadgeProps> = ({
+  apiKey,
   connectionState,
 }) => {
   const getStylesByStatus = (status: ConnectionState) => {
@@ -53,14 +56,14 @@ export const ConnectionBadge: React.FC<ConnectionBadgeProps> = ({
 
   return (
     <span
-      className={`${getStylesByStatus(connectionState)} text-md font-medium capitalize px-5 py-0.8 rounded-full inline-flex items-center gap-2`}
+      className={`${apiKey ? getStylesByStatus(connectionState) : getStylesByStatus('error')} text-md font-medium capitalize px-5 py-0.8 rounded-full inline-flex items-center gap-2`}
     >
       <FontAwesomeIcon
-        icon={getIconByStatus(connectionState)}
+        icon={apiKey ? getIconByStatus(connectionState) : faLinkSlash}
         className={connectionState === 'connecting' ? 'animate-spin' : ''}
         size="sm"
       />
-      {connectionState}
+      {apiKey ? connectionState : 'No API Key'}
     </span>
   );
 };
