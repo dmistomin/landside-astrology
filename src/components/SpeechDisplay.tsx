@@ -49,7 +49,7 @@ export const SpeechDisplay: React.FC<SpeechDisplayProps> = ({ segments }) => {
         return (
           <li
             key={index}
-            className={`${index === segments.length - 1 ? 'ms-6' : 'mb-10 ms-6'}`}
+            className={`${index === segments.length - 1 ? 'ms-6' : 'mb-4 ms-6'}`}
           >
             <div className="absolute flex items-center justify-center w-6 h-6 bg-blue-100 rounded-full -start-3 ring-8 ring-white dark:ring-gray-900 dark:bg-blue-900">
               <div className="relative w-6 h-6">
