@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { ApiKeyWarning } from './components/ApiKeyWarning';
-import { AppHeader } from './components/AppHeader';
 import { AppBar } from './components/AppBar';
 import { AudioErrorDisplay } from './components/AudioErrorDisplay';
 import { AudioPlayback } from './components/AudioPlayback';
@@ -48,7 +47,11 @@ function App() {
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
-      <AppBar title="'Landside Astrology'" apiKey={apiKey} connectionState={connectionState} />
+      <AppBar
+        title="'Landside Astrology'"
+        apiKey={apiKey}
+        connectionState={connectionState}
+      />
       <div className="max-w-4xl mx-auto space-y-6 py-20 px-4">
         {!apiKey && <ApiKeyWarning />}
         <SpeechDisplay segments={transcriptSegments} />
