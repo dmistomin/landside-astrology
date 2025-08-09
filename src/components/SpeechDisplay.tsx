@@ -42,34 +42,34 @@ export const SpeechDisplay: React.FC<SpeechDisplayProps> = ({ segments }) => {
     <ol className="relative border-s border-gray-200 dark:border-gray-700">
       {segments.map((segment, index) => {
         const confidencePercentage = Math.round(segment.confidence * 100);
-        const circumference = 2 * Math.PI * 10; // radius = 10
+        const circumference = 2 * Math.PI * 16; // radius = 16
         const strokeDashoffset =
           circumference - (confidencePercentage / 100) * circumference;
 
         return (
           <li
             key={index}
-            className={`${index === segments.length - 1 ? 'ms-6' : 'mb-4 ms-6'}`}
+            className={`${index === segments.length - 1 ? 'ms-8' : 'mb-4 ms-8'}`}
           >
-            <div className="absolute flex items-center justify-center w-6 h-6 bg-blue-100 rounded-full -start-3 ring-8 ring-white dark:ring-gray-900 dark:bg-blue-900">
-              <div className="relative w-6 h-6">
+            <div className="absolute flex items-center justify-center w-10 h-10 bg-blue-100 rounded-full -start-5 ring-8 ring-white dark:ring-gray-900 dark:bg-blue-900">
+              <div className="relative w-10 h-10">
                 <svg
-                  className="absolute inset-0 w-6 h-6 transform -rotate-90"
-                  viewBox="0 0 24 24"
+                  className="absolute inset-0 w-10 h-10 transform -rotate-90"
+                  viewBox="0 0 36 36"
                 >
                   <circle
-                    cx="12"
-                    cy="12"
-                    r="10"
+                    cx="18"
+                    cy="18"
+                    r="16"
                     stroke="currentColor"
                     strokeWidth="2"
                     fill="none"
                     className="text-gray-200"
                   />
                   <circle
-                    cx="12"
-                    cy="12"
-                    r="10"
+                    cx="18"
+                    cy="18"
+                    r="16"
                     stroke="currentColor"
                     strokeWidth="2"
                     fill="none"
@@ -85,10 +85,20 @@ export const SpeechDisplay: React.FC<SpeechDisplayProps> = ({ segments }) => {
                   <FontAwesomeIcon
                     icon={faUser}
                     className="text-gray-600 dark:text-gray-300"
-                    size="xs"
+                    size="sm"
                   />
+                </div>
+                <div className="absolute -bottom-1 -right-1">
                   <span
-                    className={`absolute text-[6px] font-bold mt-3 ${getConfidenceColor(segment.confidence)}`}
+                    className={`inline-flex items-center justify-center px-1 py-0.5 text-[8px] font-semibold leading-none text-white bg-gray-800 rounded-full min-w-[18px] h-4 ${getConfidenceColor(segment.confidence)} shadow-sm`}
+                    style={{
+                      backgroundColor:
+                        segment.confidence >= 0.7
+                          ? '#22c55e'
+                          : segment.confidence >= 0.4
+                            ? '#eab308'
+                            : '#ef4444',
+                    }}
                   >
                     {confidencePercentage}%
                   </span>
